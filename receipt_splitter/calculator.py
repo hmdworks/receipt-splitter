@@ -1,3 +1,5 @@
+"""Calculation logic for receipt splitter."""
+
 from decimal import Decimal, ROUND_DOWN, ROUND_HALF_UP
 
 def split_cost(people, items, shared_by):
@@ -6,6 +8,13 @@ def split_cost(people, items, shared_by):
         cut = price / len(shared_by[item])
         for name in shared_by[item]:
             people[name] += cut
+
+
+def apply_extra_charges(people, service_rate):
+    # apply service charge
+    for name in people:
+        people[name] *= (1 + service_rate)
+
 
 def apply_rounding(people):
     rounded = {}
