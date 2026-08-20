@@ -3,10 +3,10 @@
 from decimal import Decimal, InvalidOperation
 from .calculator import split_cost, apply_extra_charges, apply_rounding
 from . import validation
+from .models import Receipt
 
-def get_people():
-    people = {}
 
+def get_people(receipt: Receipt) -> None:
     # validate number of people
     while True:
         try:
@@ -20,36 +20,32 @@ def get_people():
         while True:
             try:
                 name = validation.validate_person_name(
-                    input(f"Person {i+1}: "), people
+                    input(f"Person {i+1}: "), receipt.people
                 )
                 break
             except ValueError as e:
                 print(e)
 
-        people[name] = Decimal("0")
-
-    return people
+        receipt.add_person(name)
 
 
-def get_items():
-    items = {}
+def get_items(receipt: Receipt) -> None:
     count = 0
 
     while True: 
-        # input validation loop
+        # validate input
         while True:
             try:
                 raw_name, raw_price = validation.validate_item_line(
                     input(f"Add item {count + 1} (name, price): ")
                 )
-                item = validation.validate_item_name(raw_name, items)
+                name = validation.validate_item_name(raw_name, receipt.items)
                 price = validation.validate_price(raw_price)
                 break
             except ValueError as e:
                 print(e)
 
-        # add price to items
-        items[item] = price
+        receipt.add_item(name, price)
         count += 1
 
         # ask to add another item
@@ -63,31 +59,26 @@ def get_items():
                 print(e)
 
         if not add_another:
-            return items
+            return
 
 
-def assign_items(people, items):
-    shared_by = {}
-
+def assign_items(receipt: Receipt) -> None:
     # ask who shared each item
-    for item in items:
+    for item in receipt.items.values():
         while True:
             try:
                 names = validation.validate_shared_names(
-                    input(f"Who shared {item}? (comma-separated): "),
-                    people,
+                    input(f"Who shared {item.name}? (comma-separated): "),
+                    receipt.people,
                 )
                 break
             except ValueError as e:
                 print(e)
         
-        # add names for each item
-        shared_by[item] = names
-
-    return shared_by
+        item.shared_by = names
 
 
-def get_extra_charges():
+def get_extra_charges(receipt: Receipt) -> None:
     # ask if service charge and validate y/n
     while True:
         try:
@@ -99,23 +90,20 @@ def get_extra_charges():
             print(e)
  
     if not wants_service:
-        return Decimal("0")
+        return
 
     # get and validate percentage
     while True:
         try:
-            service_rate = validation.validate_service_rate(
+            receipt.service_rate = validation.validate_service_rate(
                 input("Please enter a percentage for the service charge: ")
             )
             break
         except ValueError as e:
             print(e)
 
-    return service_rate
 
-
-def show_receipt(people, items, shared_by, service_rate):
-    # format receipt and embed values
+def show_receipt(receipt: Receipt) -> None:
     print("\n" + "=" * 40)
     print(" " * 17 + "RECEIPT")
     print("=" * 40)
@@ -123,26 +111,26 @@ def show_receipt(people, items, shared_by, service_rate):
     print("\nITEMS")
     print("-" * 40)
 
-    subtotal = sum(items.values())
+    subtotal = sum(item.price for item in receipt.items.values())
 
-    for item, price in items.items():
-        names = ", ".join(shared_by[item])
-        print(f"{item:<25} £{price:>8.2f}")
+    for item in receipt.items.values():
+        names = ", ".join(item.shared_by)
+        print(f"{item.name:<25} £{item.price:>8.2f}")
         print(f"  Shared by: {names}")
 
     print("-" * 40)
     print(f"{'Subtotal':<25} £{subtotal:>8.2f}")
 
-    if service_rate > 0:
-        service_charge = subtotal * service_rate
-        percentage = f"{service_rate * 100:.2f}".rstrip("0").rstrip(".")
+    if receipt.service_rate > 0:
+        service_charge = subtotal * receipt.service_rate
+        percentage = f"{receipt.service_rate * 100:.2f}".rstrip("0").rstrip(".")
 
         print(
             f"{f'Service charge ({percentage}%)':<25} "
             f"£{service_charge:>8.2f}"
         )
 
-    total = subtotal * (1 + service_rate)
+    total = subtotal * (1 + receipt.service_rate)
 
     print("-" * 40)
     print(f"{'Total':<25} £{total:>8.2f}")
@@ -150,30 +138,29 @@ def show_receipt(people, items, shared_by, service_rate):
     print("\n\nAMOUNT OWED")
     print("-" * 40)
 
-    for name, amount in people.items():
-        print(f"{name:<25} £{amount:>8.2f}")
+    for person in receipt.people.values():
+        print(f"{person.name:<25} £{person.total:>8.2f}")
 
     print("-" * 40)
-    print(f"{'Total':<25} £{sum(people.values()):>8.2f}")
+    print(f"{'Total':<25} £{sum(p.total for p in receipt.people.values()):>8.2f}")
     print("=" * 40)
 
 
 def main():
-    people = get_people()
-
-    items = get_items()
-
-    shared_by = assign_items(people, items)
-    
-    split_cost(people, items, shared_by)
-
-    service_rate = get_extra_charges() 
-
-    apply_extra_charges(people, service_rate)
-
-    apply_rounding(people)
-
-    show_receipt(people, items, shared_by, service_rate)
+    receipt = Receipt()
+ 
+    get_people(receipt)
+    get_items(receipt)
+    assign_items(receipt)
+ 
+    split_cost(receipt)
+ 
+    get_extra_charges(receipt)
+    apply_extra_charges(receipt)
+ 
+    apply_rounding(receipt)
+ 
+    show_receipt(receipt)
 
 
 if __name__ == "__main__":
