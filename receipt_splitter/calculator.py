@@ -1,15 +1,29 @@
-"""Calculation logic for receipt splitter."""
+"""Calculation logic for the receipt splitter."""
 
 from decimal import Decimal, ROUND_DOWN, ROUND_HALF_UP
 from .models import Receipt
 
 
+def calculate_subtotal(receipt: Receipt) -> Decimal:
+    return sum(item.price for item in receipt.items.values())
+
+
+def calculate_receipt_total(receipt: Receipt) -> Decimal:
+    subtotal = calculate_subtotal(receipt)
+    return subtotal * (1 + receipt.service_rate)
+
+
+def calculate_people_total(receipt: Receipt) -> Decimal:
+    return sum(person.total for person in receipt.people.values())
+
+
+
 def split_cost(receipt: Receipt) -> None:
     for item in receipt.items.values():
-        # work out cut and add to person's total
-        cut = item.price / len(item.shared_by)
+        # work out share and add to person's total
+        share = item.price / len(item.shared_by)
         for name in item.shared_by:
-            receipt.people[name].total += cut
+            receipt.people[name].total += share
 
 
 def apply_extra_charges(receipt: Receipt) -> None:
@@ -18,7 +32,6 @@ def apply_extra_charges(receipt: Receipt) -> None:
         person.total *= (1 + receipt.service_rate)
 
 
-# functions for handling remaining pennies
 
 def _round_down_to_penny(amount: Decimal) -> Decimal:
     return amount.quantize(Decimal("0.01"), rounding=ROUND_DOWN)
@@ -47,11 +60,10 @@ def apply_rounding(receipt: Receipt):
         for name, person in receipt.people.items()
     }
 
-    # round the overall bill to the nearest penny
-    total = sum(person.total for person in receipt.people.values())
-    target_total = _round_half_up_to_penny(total)
+    # round the receipt total to the nearest penny
+    target_total = _round_half_up_to_penny(calculate_receipt_total(receipt))
 
-    # work out how much left to distribute
+    # work out how much left to distribute in pennies
     rounded_total = sum(rounded.values())
     difference = target_total - rounded_total
     pennies = int(difference * 100)

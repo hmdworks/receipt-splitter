@@ -1,9 +1,10 @@
 """Command-line interface for the receipt splitter."""
 
 from decimal import Decimal, InvalidOperation
-from .calculator import split_cost, apply_extra_charges, apply_rounding
+from .calculator import split_cost, apply_extra_charges, apply_rounding, calculate_subtotal, calculate_receipt_total, calculate_people_total
 from . import validation
 from .models import Receipt
+from .formatter import show_receipt
 
 
 def get_people(receipt: Receipt) -> None:
@@ -103,49 +104,6 @@ def get_extra_charges(receipt: Receipt) -> None:
             print(e)
 
 
-def show_receipt(receipt: Receipt) -> None:
-    print("\n" + "=" * 40)
-    print(" " * 17 + "RECEIPT")
-    print("=" * 40)
-
-    print("\nITEMS")
-    print("-" * 40)
-
-    subtotal = sum(item.price for item in receipt.items.values())
-
-    for item in receipt.items.values():
-        names = ", ".join(item.shared_by)
-        print(f"{item.name:<25} £{item.price:>8.2f}")
-        print(f"  Shared by: {names}")
-
-    print("-" * 40)
-    print(f"{'Subtotal':<25} £{subtotal:>8.2f}")
-
-    if receipt.service_rate > 0:
-        service_charge = subtotal * receipt.service_rate
-        percentage = f"{receipt.service_rate * 100:.2f}".rstrip("0").rstrip(".")
-
-        print(
-            f"{f'Service charge ({percentage}%)':<25} "
-            f"£{service_charge:>8.2f}"
-        )
-
-    total = subtotal * (1 + receipt.service_rate)
-
-    print("-" * 40)
-    print(f"{'Total':<25} £{total:>8.2f}")
-
-    print("\n\nAMOUNT OWED")
-    print("-" * 40)
-
-    for person in receipt.people.values():
-        print(f"{person.name:<25} £{person.total:>8.2f}")
-
-    print("-" * 40)
-    print(f"{'Total':<25} £{sum(p.total for p in receipt.people.values()):>8.2f}")
-    print("=" * 40)
-
-
 def main():
     receipt = Receipt()
  
@@ -154,7 +112,7 @@ def main():
     assign_items(receipt)
  
     split_cost(receipt)
- 
+
     get_extra_charges(receipt)
     apply_extra_charges(receipt)
  
