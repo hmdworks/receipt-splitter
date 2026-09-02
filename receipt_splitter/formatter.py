@@ -67,6 +67,15 @@ def format_receipt(
             )
         )
 
+    return "\n".join(lines)
+
+
+def format_amount_owed(
+    receipt: Receipt,
+    format: ReceiptFormat = ReceiptFormat(),
+) -> str:
+    
+    lines = []
     total = calculate_receipt_total(receipt)
 
     lines.append(_divider(format))
@@ -93,3 +102,7 @@ def format_receipt(
 
 def show_receipt(receipt: Receipt) -> None:
     print("\n" + format_receipt(receipt))
+
+
+def show_amount_owed(receipt: Receipt) -> None:
+    print("\n" + format_amount_owed(receipt))
