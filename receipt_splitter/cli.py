@@ -19,9 +19,35 @@ def _(event):
 
 session = PromptSession()
 
+# add confirmation on Esc
+def confirm_exit() -> bool:
+    confirm_kb = KeyBindings()
+
+    @confirm_kb.add("escape")
+    def _(event):
+        event.app.exit(result=True)
+
+    @confirm_kb.add("enter")
+    def _(event):
+        event.app.exit(result=False)
+
+    return session.prompt(
+        "\nPress Esc again to exit, or Enter to continue: ",
+        key_bindings=confirm_kb,
+    )
+
 
 def get_input(prompt: str) -> str:
-    return session.prompt(prompt, key_bindings=kb)
+    while True:
+        try:
+            return session.prompt(prompt, key_bindings=kb)
+        except KeyboardInterrupt:
+            if confirm_exit():
+                raise
+
+            clear_line()
+            clear_line()
+            clear_line()
 
 
 # ANSI codes to clear inputs
@@ -503,8 +529,10 @@ def main():
         clear_screen()
         show_receipt(receipt)
         show_amount_owed(receipt)
+        print("\nThank you for using Receipt Splitter!\nCome back next time!\n")
 
     except KeyboardInterrupt:
+        clear_screen()
         print("\nGoodbye!")
         time.sleep(2)
         clear_screen()
