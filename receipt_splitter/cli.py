@@ -2,7 +2,7 @@
 
 from .calculator import split_cost, apply_extra_charges, apply_rounding
 from . import validation
-from .models import Receipt
+from .models import Receipt, Charge, ChargeType
 from .formatter import show_receipt, show_amount_owed
 
 import time
@@ -475,30 +475,42 @@ def assign_items(receipt: Receipt) -> None:
         else:
             print("Please enter e or c.")
 
-            
-def get_extra_charges(receipt: Receipt) -> None:
-    clear_screen()
-    show_receipt(receipt)
-    print()
 
-    # ask if service charge and validate y/n
+# --------------------------------------------------------------------------------------
+# Extra charges
+# --------------------------------------------------------------------------------------    
+
+def get_charge_type() -> int | None:
     while True:
+        choice = get_input(
+                    "Would you like to add an extra charge?\n"
+                    "1. Percentage service charge only\n"
+                    "2. Other charges\n"
+                    "(OR press Enter to go back)\n"  
+                    "> "                
+                    )
+
+        # allow enter
+        if not choice.strip():
+            return None
+
+        # validate only 1 or 2
         try:
-            wants_service = validation.validate_yes_no(
-                get_input("Would you like to add a service charge? (y/n): ")
-            )
+            charge_type = validation.validate_num_option(
+                            choice,
+                            2,
+                            )
             clear_line()
-            break
+            return charge_type
         except ValueError as e:
             print(e)
- 
-    if not wants_service:
-        return
 
-    # get and validate percentage
+
+def add_service_charge(receipt: Receipt) -> None:
+    # get service charge percentage and add to receipt
     while True:
         try:
-            receipt.service_rate = validation.validate_service_rate(
+            receipt.service_rate = validation.validate_percentage_charge(
                 get_input("Please enter a percentage for the service charge: ")
             )
             clear_line()
@@ -507,6 +519,102 @@ def get_extra_charges(receipt: Receipt) -> None:
             print(e)
 
 
+def add_other_charges(receipt: Receipt) -> None:
+    while True:
+        # choose percentage or fixed
+        while True:
+            try:
+                other_charge_type = validation.validate_num_option(
+                    get_input(
+                        "Would you like to add:\n"
+                        "1. A percentage charge (split by individual total)\n"
+                        "2. A fixed charge (split equally)\n"
+                        "> "
+                    ),
+                    2,
+                )
+                clear_line()
+                break
+            except ValueError as e:
+                print(e)
+
+        clear_screen()
+        show_receipt(receipt)
+        print()
+
+        # get charge value
+        while True:
+            try:
+                if other_charge_type == 1:
+                    value = validation.validate_percentage_charge(
+                        get_input(
+                            "Please enter a percentage for the extra charge: "
+                        )
+                    )
+                elif other_charge_type == 2:
+                    value = validation.validate_fixed_charge(
+                        get_input(
+                            "Please enter the amount for the extra charge: "
+                        )
+                    )
+
+                clear_line()
+                break
+
+            except ValueError as e:
+                print(e)
+
+        # store charge in receipt
+        if other_charge_type == 1:
+            receipt.extra_charges.append(
+                Charge(ChargeType.PERCENTAGE, value)
+            )
+        elif other_charge_type == 2:
+            receipt.extra_charges.append(
+                Charge(ChargeType.FIXED, value)
+            )
+
+        clear_screen()
+        show_receipt(receipt)
+        print()
+
+        # ask whether to add another
+        while True:
+            try:
+                another = validation.validate_yes_no(
+                    get_input("Would you like to add another charge? (y/n): ")
+                )
+                clear_line()
+                break
+            except ValueError as e:
+                print(e)
+
+        if not another:
+            break
+
+
+
+def get_extra_charges(receipt: Receipt) -> None:
+    clear_screen()
+    show_receipt(receipt)
+    print()
+
+    charge_type = get_charge_type()
+
+    clear_screen()
+    show_receipt(receipt)
+    print()
+
+    if charge_type == 1:  # standard service charge
+        add_service_charge(receipt)
+
+    elif charge_type == 2:  # other charge
+        add_other_charges(receipt)
+
+
+# --------------------------------------------------------------------------------------
+# MAIN
+# --------------------------------------------------------------------------------------    
 def main():
     clear_screen()
 

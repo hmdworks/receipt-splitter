@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from decimal import Decimal
 
-from .models import Receipt
+from .models import Receipt, ChargeType
 from .calculator import calculate_subtotal, calculate_receipt_total, calculate_people_total
 
 
@@ -66,6 +66,28 @@ def format_receipt(
                 service_charge,
             )
         )
+
+    for charge in receipt.extra_charges:
+        if charge.type == ChargeType.PERCENTAGE:
+            charge_amount = subtotal * charge.value
+            percentage = f"{charge.value * 100:.2f}".rstrip("0").rstrip(".")
+
+            lines.append(
+                _money_row(
+                    format,
+                    f"Extra charge ({percentage}%)",
+                    charge_amount,
+                )
+            )
+
+        elif charge.type == ChargeType.FIXED:
+            lines.append(
+                _money_row(
+                    format,
+                    "Extra charge (fixed)",
+                    charge.value,
+                )
+            )
 
     return "\n".join(lines)
 

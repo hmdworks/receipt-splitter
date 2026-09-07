@@ -2,6 +2,12 @@
 
 from dataclasses import dataclass, field
 from decimal import Decimal
+from enum import Enum
+
+
+class ChargeType(Enum):
+    PERCENTAGE = "percentage"
+    FIXED = "fixed"
 
 
 @dataclass
@@ -18,10 +24,17 @@ class ReceiptItem:
 
 
 @dataclass
+class Charge:
+    type: ChargeType
+    value: Decimal
+
+
+@dataclass
 class Receipt:
     people: dict[str, Person] = field(default_factory=dict)
     items: dict[str, ReceiptItem] = field(default_factory=dict)
     service_rate: Decimal = Decimal("0")
+    extra_charges: list[Charge] = field(default_factory=list)
  
     def add_person(self, name: str) -> None:
         self.people[name] = Person(name)

@@ -1,7 +1,7 @@
 """Calculation logic for the receipt splitter."""
 
 from decimal import Decimal, ROUND_DOWN, ROUND_HALF_UP
-from .models import Receipt
+from .models import Receipt, ChargeType
 
 
 def calculate_subtotal(receipt: Receipt) -> Decimal:
@@ -10,7 +10,16 @@ def calculate_subtotal(receipt: Receipt) -> Decimal:
 
 def calculate_receipt_total(receipt: Receipt) -> Decimal:
     subtotal = calculate_subtotal(receipt)
-    return subtotal * (1 + receipt.service_rate)
+
+    total = subtotal * (1 + receipt.service_rate)
+
+    for charge in receipt.extra_charges:
+        if charge.type == ChargeType.PERCENTAGE:
+            total += subtotal * charge.value
+        elif charge.type == ChargeType.FIXED:
+            total += charge.value
+
+    return total
 
 
 def calculate_people_total(receipt: Receipt) -> Decimal:
@@ -27,9 +36,19 @@ def split_cost(receipt: Receipt) -> None:
 
 
 def apply_extra_charges(receipt: Receipt) -> None:
-    # apply service charge
     for person in receipt.people.values():
+        # calculate extra charges total separate to person total
+        extra_charges = Decimal("0")
+
+        for charge in receipt.extra_charges:
+            if charge.type == ChargeType.PERCENTAGE:
+                extra_charges += person.total * charge.value
+            elif charge.type == ChargeType.FIXED:
+                extra_charges += (charge.value / len(receipt.people))
+
+        # add extra charges and service charge to person total
         person.total *= (1 + receipt.service_rate)
+        person.total += extra_charges
 
 
 

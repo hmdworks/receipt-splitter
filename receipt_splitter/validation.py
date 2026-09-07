@@ -94,16 +94,40 @@ def validate_yes_no(raw: str) -> bool:
     return answer == "y"
 
 
-def validate_service_rate(raw: str) -> Decimal:
+def validate_percentage_charge(raw: str) -> Decimal:
     try:
-        service_rate = Decimal(raw.strip()) / 100
+        percentage_charge = Decimal(raw.strip()) / 100
     except InvalidOperation:
         raise ValueError("Please enter a valid number.")
  
-    if service_rate < 0:
-        raise ValueError("Service charge cannot be negative.")
+    if percentage_charge < 0:
+        raise ValueError("Percentage charge cannot be negative.")
 
-    if service_rate > 1:
-        raise ValueError("Service charge cannot exceed 100%.")
+    if percentage_charge > 1:
+        raise ValueError("Percentage charge cannot exceed 100%.")
  
-    return service_rate
+    return percentage_charge
+
+
+def validate_fixed_charge(raw: str) -> Decimal:
+    try:
+        fixed_charge = Decimal(raw.strip())
+    except InvalidOperation:
+        raise ValueError("Please enter a valid number.")
+
+    if fixed_charge < 0:
+        raise ValueError("Fixed charge cannot be negative.")
+
+    return fixed_charge
+
+
+def validate_num_option(raw: str, num_options: int) -> int:
+    try:
+        num = int(raw.strip())
+    except ValueError:
+        raise ValueError("Please enter a valid number.")
+    
+    if num not in range(1, num_options + 1):
+        raise ValueError("Please enter a number among the options given.")
+
+    return num
