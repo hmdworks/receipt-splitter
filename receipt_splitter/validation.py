@@ -58,6 +58,13 @@ def validate_item_name(raw: str, existing_names) -> str:
     return name
 
 
+def validate_item(raw: str, items) -> tuple[str, Decimal]:
+    raw_name, raw_price = validate_item_line(raw)
+    name = validate_item_name(raw_name, items)
+    price = validate_price(raw_price)
+    return name, price
+
+
 def validate_price(raw: str) -> Decimal:
     try:
         price = Decimal(raw.strip())

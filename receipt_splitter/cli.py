@@ -50,6 +50,16 @@ def get_input(prompt: str) -> str:
             clear_line()
 
 
+def get_validated_input(prompt, validator, *args, **kwargs):
+    while True:
+        try:
+            value = validator(get_input(prompt), *args, **kwargs)
+            clear_line()
+            return value
+        except ValueError as e:
+            print(e)
+
+
 # ANSI codes to clear inputs
 def clear_line() -> None:
     print("\033[1A\033[2K", end="")
@@ -72,6 +82,13 @@ def display_start_menu() -> None:
     print("Press Esc anytime to quit.\n")
 
     get_input("")
+
+
+def refresh_receipt(receipt: Receipt) -> None:
+    clear_screen()
+    show_receipt(receipt)
+    print()
+
 
 # --------------------------------------------------------------------------------------
 # People
@@ -103,15 +120,11 @@ def edit_person(receipt: Receipt) -> None:
         print("Invalid person number.")
         return
 
-    while True:
-        try:
-            new_name = validation.validate_person_name(
-                get_input(f"New name [{person.name}]: "),
-                receipt.people,
-            )
-            break
-        except ValueError as e:
-            print(e)
+    new_name = get_validated_input(
+        f"New name [{person.name}]: ",
+        validation.validate_person_name,
+        receipt.people
+    )
 
     receipt.rename_person(person.name, new_name)
 
@@ -142,15 +155,12 @@ def add_person(receipt: Receipt) -> None:
     clear_screen()
     display_people(receipt)
     print()
-    while True:
-        try:
-            name = validation.validate_person_name(
-                get_input("Name: "),
-                receipt.people,
-            )
-            break
-        except ValueError as e:
-            print(e)
+
+    name = get_validated_input(
+        "Name: ",
+        validation.validate_person_name,
+        receipt.people
+    )
 
     receipt.add_person(name)
 
@@ -160,26 +170,19 @@ def get_people(receipt: Receipt) -> None:
     display_header("People")
 
     # validate number of people
-    while True:
-        try:
-            num_people = validation.validate_num_people(get_input("How many people? "))
-            clear_line()
-            break
-        except ValueError as e:
-            print(e)
-
+    num_people = get_validated_input(
+        "How many people? ",
+        validation.validate_num_people,
+    )
     
     # get each person's name and validate
     for i in range(num_people):
-        while True:
-            try:
-                name = validation.validate_person_name(
-                    get_input(f"Person {i+1}: "), receipt.people
-                )
-                clear_line()
-                break
-            except ValueError as e:
-                print(e)
+
+        name = get_validated_input(
+            f"Person {i+1}: ",
+            validation.validate_person_name,
+            receipt.people
+        )
 
         receipt.add_person(name)
 
@@ -222,20 +225,11 @@ def add_item(receipt: Receipt) -> None:
     clear_screen()
     display_items(receipt)
 
-    while True:
-        try:
-            raw_name, raw_price = validation.validate_item_line(
-                get_input("\nAdd item (name, price): ")
-            )
-            name = validation.validate_item_name(
-                raw_name,
-                receipt.items,
-            )
-            price = validation.validate_price(raw_price)
-            clear_line()
-            break
-        except ValueError as e:
-            print(e)
+    name, price = get_validated_input(
+        "\nAdd item (name, price): ",
+        validation.validate_item,
+        receipt.items,
+    )
 
     receipt.add_item(name, price)
 
@@ -322,38 +316,18 @@ def delete_item(receipt: Receipt) -> None:
 
 
 def get_items(receipt: Receipt) -> None:
-    clear_screen()
-    display_header("Items")
-
-    count = 0
-
     while True:
-        # validate input
-        while True:
-            try:
-                raw_name, raw_price = validation.validate_item_line(
-                    get_input(f"Add item {count + 1} (name, price): ")
-                )
-                name = validation.validate_item_name(raw_name, receipt.items)
-                price = validation.validate_price(raw_price)
-                clear_line()
-                break
-            except ValueError as e:
-                print(e)
+        add_item(receipt)
 
-        receipt.add_item(name, price)
-        count += 1
+        clear_screen()
+        display_items(receipt)
+        print()
 
         # ask to add another item
-        while True:
-            try:
-                add_another = validation.validate_yes_no(
-                    get_input("Add another item? (y/n): ")
-                )
-                clear_line()
-                break
-            except ValueError as e:
-                print(e)
+        add_another = get_validated_input(
+            "Add another item? (y/n): ",
+            validation.validate_yes_no
+        )
 
         if not add_another:
             break
@@ -397,8 +371,7 @@ def find_item(items, name):
 
 
 def edit_shared_by(receipt: Receipt) -> None:
-    clear_screen()
-    show_receipt(receipt)
+    refresh_receipt(receipt)
     
     items = list(receipt.items.values())
 
@@ -415,52 +388,36 @@ def edit_shared_by(receipt: Receipt) -> None:
         print(e)
         return
 
-    while True:
-        try:
-            names = validation.validate_shared_names(
-                get_input(
-                    f"Who shared {item.name}? (comma-separated): "
-                ),
-                receipt.people,
-            )
-            break
-        except ValueError as e:
-            print(e)
+    names = get_validated_input(
+        f"Who shared {item.name}? (comma-separated): ",
+        validation.validate_shared_names,
+        receipt.people
+    )
 
     item.shared_by = names
 
     
 def assign_items(receipt: Receipt) -> None:
-    clear_screen()
-    show_receipt(receipt)
-    print()
+    refresh_receipt(receipt)
     display_people(receipt)
     print()
 
     # ask who shared each item
     for item in receipt.items.values():
-        while True:
-            try:
-                names = validation.validate_shared_names(
-                    get_input(f"Who shared {item.name}? (comma-separated): "),
-                    receipt.people,
-                )
-                clear_line()
-                break
-            except ValueError as e:
-                print(e)
+        names = get_validated_input(
+                f"Who shared {item.name}? (comma-separated): ",
+                validation.validate_shared_names,
+                receipt.people
+            )
 
         item.shared_by = names
-        clear_screen()
-        show_receipt(receipt)
-        print()
+        refresh_receipt(receipt)
         display_people(receipt)
         print()
             
 
     while True:
-        clear_screen()
-        show_receipt(receipt)
+        refresh_receipt(receipt)
 
         print("\n[e] Edit  [c] Continue")
 
@@ -497,9 +454,9 @@ def get_charge_type() -> int | None:
         # validate only 1 or 2
         try:
             charge_type = validation.validate_num_option(
-                            choice,
-                            2,
-                            )
+                choice,
+                2,
+            )
             clear_line()
             return charge_type
         except ValueError as e:
@@ -508,61 +465,35 @@ def get_charge_type() -> int | None:
 
 def add_service_charge(receipt: Receipt) -> None:
     # get service charge percentage and add to receipt
-    while True:
-        try:
-            receipt.service_rate = validation.validate_percentage_charge(
-                get_input("Please enter a percentage for the service charge: ")
-            )
-            clear_line()
-            break
-        except ValueError as e:
-            print(e)
+    receipt.service_rate = get_validated_input(
+        "Please enter a percentage for the service charge: ",
+        validation.validate_percentage_charge
+    )
 
 
 def add_other_charges(receipt: Receipt) -> None:
     while True:
         # choose percentage or fixed
-        while True:
-            try:
-                other_charge_type = validation.validate_num_option(
-                    get_input(
-                        "Would you like to add:\n"
-                        "1. A percentage charge (split by individual total)\n"
-                        "2. A fixed charge (split equally)\n"
-                        "> "
-                    ),
-                    2,
-                )
-                clear_line()
-                break
-            except ValueError as e:
-                print(e)
+        other_charge_type = get_validated_input(
+            "Would you like to add:\n"
+            "1. A percentage charge (split by individual total)\n"
+            "2. A fixed charge (split equally)\n"
+            "> ",
+            validation.validate_num_option,
+            2,
+        )
 
-        clear_screen()
-        show_receipt(receipt)
-        print()
+        refresh_receipt(receipt)
 
         # get charge value
-        while True:
-            try:
-                if other_charge_type == 1:
-                    value = validation.validate_percentage_charge(
-                        get_input(
-                            "Please enter a percentage for the extra charge: "
-                        )
-                    )
-                elif other_charge_type == 2:
-                    value = validation.validate_fixed_charge(
-                        get_input(
-                            "Please enter the amount for the extra charge: "
-                        )
-                    )
+        if other_charge_type == 1:
+            prompt = "Please enter a percentage for the extra charge: "
+            validator = validation.validate_percentage_charge
+        elif other_charge_type == 2:
+            prompt = "Please enter the amount for the extra charge: "
+            validator = validation.validate_fixed_charge
 
-                clear_line()
-                break
-
-            except ValueError as e:
-                print(e)
+        value = get_validated_input(prompt, validator)
 
         # store charge in receipt
         if other_charge_type == 1:
@@ -574,20 +505,13 @@ def add_other_charges(receipt: Receipt) -> None:
                 Charge(ChargeType.FIXED, value)
             )
 
-        clear_screen()
-        show_receipt(receipt)
-        print()
+        refresh_receipt(receipt)
 
         # ask whether to add another
-        while True:
-            try:
-                another = validation.validate_yes_no(
-                    get_input("Would you like to add another charge? (y/n): ")
-                )
-                clear_line()
-                break
-            except ValueError as e:
-                print(e)
+        another = get_validated_input(
+            "Would you like to add another charge? (y/n): ",
+            validation.validate_yes_no,
+        )
 
         if not another:
             break
@@ -595,15 +519,11 @@ def add_other_charges(receipt: Receipt) -> None:
 
 
 def get_extra_charges(receipt: Receipt) -> None:
-    clear_screen()
-    show_receipt(receipt)
-    print()
+    refresh_receipt(receipt)
 
     charge_type = get_charge_type()
 
-    clear_screen()
-    show_receipt(receipt)
-    print()
+    refresh_receipt(receipt)
 
     if charge_type == 1:  # standard service charge
         add_service_charge(receipt)
