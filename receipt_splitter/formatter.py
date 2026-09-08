@@ -1,7 +1,7 @@
 """Receipt formatter for the receipt splitter."""
 
 from dataclasses import dataclass
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 
 from .models import Receipt, ChargeType
 from .calculator import calculate_subtotal, calculate_receipt_total, calculate_people_total
@@ -24,6 +24,8 @@ def _money_row(
     label: str,
     amount: Decimal,
 ) -> str:
+    amount = amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
     return (
         f"{label:<{format.label_width}} "
         f"{format.currency}{amount:>{format.amount_width}.2f}"
