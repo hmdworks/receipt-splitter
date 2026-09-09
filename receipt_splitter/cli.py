@@ -140,9 +140,9 @@ def edit_person(receipt: Receipt) -> None:
 
 def delete_person(receipt: Receipt) -> None:
     clear_screen()
-    people = list(receipt.people.values())
-
     display_people(receipt)
+
+    people = list(receipt.people.values())
 
     choice = get_input(
         "\nEnter person number to delete (or press Enter to go back): "
@@ -176,14 +176,17 @@ def add_person(receipt: Receipt) -> None:
 
 def get_people(receipt: Receipt) -> None:
     clear_screen()
-    display_header("People")
+    display_people(receipt)
 
     # validate number of people
     num_people = get_validated_input(
         "How many people? ",
         validation.validate_num_people,
     )
-    
+
+    clear_screen()
+    display_people(receipt)
+
     # get each person's name and validate
     for i in range(num_people):
 
@@ -233,9 +236,10 @@ def display_items(receipt: Receipt) -> None:
 def add_item(receipt: Receipt) -> None:
     clear_screen()
     display_items(receipt)
+    print()
 
     name, price = get_validated_input(
-        "\nAdd item (name, price): ",
+        "Add item (name, price): ",
         validation.validate_item,
         receipt.items,
     )
