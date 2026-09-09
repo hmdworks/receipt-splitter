@@ -45,24 +45,33 @@ def get_input(prompt: str) -> str:
             if confirm_exit():
                 raise
 
-            clear_line()
-            clear_line()
-            clear_line()
+            clear_lines(3)
 
 
 def get_validated_input(prompt, validator, *args, **kwargs):
+    error = False
     while True:
         try:
             value = validator(get_input(prompt), *args, **kwargs)
             clear_line()
             return value
         except ValueError as e:
+            clear_line()  # clear prompt
+            if error:
+                clear_lines(2)  # clear previous error plus blank line
             print(e)
+            print()
+            error = True
 
 
 # ANSI codes to clear inputs
 def clear_line() -> None:
     print("\033[1A\033[2K", end="")
+
+
+def clear_lines(count: int) -> None:
+    for _ in range(count):
+        clear_line()
 
 
 def clear_screen() -> None:
