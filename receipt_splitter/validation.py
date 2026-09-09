@@ -128,13 +128,15 @@ def validate_fixed_charge(raw: str) -> Decimal:
     return fixed_charge
 
 
-def validate_num_option(raw: str, num_options: int) -> int:
+def validate_num_option(raw: str, num_options: int, allow_zero: bool = False) -> int:
     try:
         num = int(raw.strip())
     except ValueError:
         raise ValueError("Please enter a valid number.")
+
+    min_range = 0 if allow_zero else 1
     
-    if num not in range(1, num_options + 1):
+    if num not in range(min_range, num_options + 1):
         raise ValueError("Please enter a number among the options given.")
 
     return num

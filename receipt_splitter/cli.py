@@ -64,6 +64,20 @@ def get_validated_input(prompt, validator, *args, **kwargs):
             error = True
 
 
+def choose_from_list(options, action: str):
+    choice = get_validated_input(
+        f"Enter number for {action} (or 0 to go back): ",
+        validation.validate_num_option,
+        len(options),
+        allow_zero=True,
+    )
+
+    if choice == 0:
+        return None
+
+    return options[choice - 1]
+
+
 # ANSI codes to clear inputs
 def clear_line() -> None:
     print("\033[1A\033[2K", end="")
@@ -113,20 +127,11 @@ def display_people(receipt: Receipt) -> None:
 def edit_person(receipt: Receipt) -> None:
     clear_screen()
     display_people(receipt)
+    print()
 
-    people = list(receipt.people.values())
+    person = choose_from_list(list(receipt.people.values()), "person to edit")
 
-    choice = get_input(
-        "\nEnter person number to edit (or press Enter to go back): "
-    )
-
-    if not choice:
-        return
-
-    try:
-        person = people[int(choice) - 1]
-    except (ValueError, IndexError):
-        print("Invalid person number.")
+    if person is None:
         return
 
     new_name = get_validated_input(
@@ -141,20 +146,11 @@ def edit_person(receipt: Receipt) -> None:
 def delete_person(receipt: Receipt) -> None:
     clear_screen()
     display_people(receipt)
+    print()
 
-    people = list(receipt.people.values())
+    person = choose_from_list(list(receipt.people.values()), "person to delete")
 
-    choice = get_input(
-        "\nEnter person number to delete (or press Enter to go back): "
-    )
-
-    if not choice:
-        return
-
-    try:
-        person = people[int(choice) - 1]
-    except (ValueError, IndexError):
-        print("Invalid person number.")
+    if person is None:
         return
 
     receipt.remove_person(person.name)
@@ -248,56 +244,37 @@ def add_item(receipt: Receipt) -> None:
 
 
 def edit_item(receipt: Receipt) -> None:
-    items = list(receipt.items.values())
-
     clear_screen()
     display_items(receipt)
+    print()
 
-    choice = get_input(
-        "\nEnter item number to edit (or press Enter to go back): "
-    )
+    item = choose_from_list(list(receipt.items.values()), "item to edit")
 
-    if not choice:
+    if item is None:
         return
 
-    try:
-        item = items[int(choice) - 1]
-    except (ValueError, IndexError):
-        print("Invalid item number.")
-        return
-
-    while True:
-        new_name = get_input(
-            f"Name [{item.name}] (press Enter if no change): "
+    if get_validated_input(
+        "Change name? (y/n): ",
+        validation.validate_yes_no,
+    ):
+        new_name = get_validated_input(
+            "New name: ",
+            validation.validate_item_name,
+            receipt.items,
         )
+    else:
+        new_name = item.name
 
-        if not new_name:
-            new_name = item.name
-            break
-
-        try:
-            new_name = validation.validate_item_name(
-                new_name,
-                receipt.items,
-            )
-            break
-        except ValueError as e:
-            print(e)
-
-    while True:
-        new_price = get_input(
-            f"Price [{item.price:.2f}] (press Enter if no change): "
+    if get_validated_input(
+        "Change price? (y/n): ",
+        validation.validate_yes_no,
+    ):
+        new_price = get_validated_input(
+            "New price: ",
+            validation.validate_price,
         )
-
-        if not new_price:
-            new_price = item.price
-            break
-
-        try:
-            new_price = validation.validate_price(new_price)
-            break
-        except ValueError as e:
-            print(e)
+    else:
+        new_price = item.price
 
     receipt.edit_item(
         item.name,
@@ -307,22 +284,13 @@ def edit_item(receipt: Receipt) -> None:
 
 
 def delete_item(receipt: Receipt) -> None:
-    items = list(receipt.items.values())
-
     clear_screen()
     display_items(receipt)
+    print()
 
-    choice = get_input(
-        "\nEnter item number to delete (or press Enter to go back): "
-    )
+    item = choose_from_list(list(receipt.items.values()), "item to delete")
 
-    if not choice:
-        return
-
-    try:
-        item = items[int(choice) - 1]
-    except (ValueError, IndexError):
-        print("Invalid item number.")
+    if item is None:
         return
 
     receipt.remove_item(item.name)
