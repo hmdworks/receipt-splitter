@@ -27,6 +27,9 @@ def validate_person_name(raw: str, existing_names) -> str:
  
     if not name:
         raise ValueError("Name cannot be empty.")
+
+    if not any(char.isalpha() for char in name):
+        raise ValueError("Name must contain at least one letter.")
  
     if name in existing_names:
         raise ValueError("That person has already been added.")
