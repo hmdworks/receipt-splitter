@@ -65,6 +65,9 @@ def get_validated_input(prompt, validator, *args, **kwargs):
 
 
 def choose_from_list(options, action: str):
+    if not options:
+        return -1
+
     choice = get_validated_input(
         f"Enter number for {action} (or 0 to go back): ",
         validation.validate_num_option,
@@ -131,8 +134,11 @@ def edit_person(receipt: Receipt) -> None:
 
     person = choose_from_list(list(receipt.people.values()), "person to edit")
 
-    if person is None:
+    if person is None:  # user chose to go back
         return
+
+    if person == -1:  # no person to edit
+        return -1
 
     new_name = get_validated_input(
         f"New name [{person.name}]: ",
@@ -150,8 +156,11 @@ def delete_person(receipt: Receipt) -> None:
 
     person = choose_from_list(list(receipt.people.values()), "person to delete")
 
-    if person is None:
+    if person is None:  # user chose to go back
         return
+
+    if person == -1:  # no person to delete
+        return -1
 
     receipt.remove_person(person.name)
 
@@ -196,6 +205,8 @@ def get_people(receipt: Receipt) -> None:
 
 
     input_error = False  # for edit menu input error
+    empty = False        # for checking if people is empty on continue
+    no_options = False   # user chose edit or delete with no people
 
     while True:
         clear_screen()
@@ -206,20 +217,32 @@ def get_people(receipt: Receipt) -> None:
             print("\nPlease enter a, e, d, or c.\n")
             input_error = False
 
+        if empty:
+            print("\nYou must include at least one person.\n")
+            empty = False
+
+        if no_options:
+            print("\nThere are no options to choose from. Please add before editing or deleting.\n")
+            no_options = False
+
         choice = get_input("> ").lower()
 
         if choice == "a":
             add_person(receipt)
 
         elif choice == "e":
-            edit_person(receipt)
+            if edit_person(receipt) == -1:
+                no_options = True
 
         elif choice == "d":
-            delete_person(receipt)
+            if delete_person(receipt) == -1:
+                no_options = True
 
         elif choice == "c":
-            clear_screen()
-            return
+            if not receipt.people:
+                empty = True
+            else:
+                return
 
         else:
             input_error = True
@@ -257,8 +280,11 @@ def edit_item(receipt: Receipt) -> None:
 
     item = choose_from_list(list(receipt.items.values()), "item to edit")
 
-    if item is None:
+    if item is None:  # user chose to go back
         return
+
+    if item is -1:    # no item to edit
+        return -1
 
     if get_validated_input(
         "Change name? (y/n): ",
@@ -298,8 +324,11 @@ def delete_item(receipt: Receipt) -> None:
 
     item = choose_from_list(list(receipt.items.values()), "item to delete")
 
-    if item is None:
+    if item is None:   # user chose to go back
         return
+
+    if item is -1:     # no item to delete
+        return -1
 
     receipt.remove_item(item.name)
 
@@ -322,7 +351,9 @@ def get_items(receipt: Receipt) -> None:
             break
 
 
-    input_error = False
+    input_error = False  # for edit menu input error
+    empty = False        # for checking if items is empty on continue
+    no_options = False   # user chose edit or delete with no items
 
     while True:
         clear_screen()
@@ -334,19 +365,32 @@ def get_items(receipt: Receipt) -> None:
             print("\nPlease enter a, e, d, or c.\n")
             input_error = False
 
+        if empty:
+            print("\nYou must add at least one item.\n")
+            empty = False
+
+        if no_options:
+            print("\nThere are no options to choose from. Please add before editing or deleting.\n")
+            no_options = False
+
         choice = get_input("> ").lower()
 
         if choice == "a":
             add_item(receipt)
 
         elif choice == "e":
-            edit_item(receipt)
+            if edit_item(receipt) == -1:
+                no_options = True
 
         elif choice == "d":
-            delete_item(receipt)
+            if delete_item(receipt) == -1:
+                no_options = True
 
         elif choice == "c":
-            return
+            if not receipt.items:
+                empty = True
+            else:
+                return
 
         else:
             input_error = True
