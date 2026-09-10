@@ -194,10 +194,17 @@ def get_people(receipt: Receipt) -> None:
 
         receipt.add_person(name)
 
+
+    input_error = False  # for edit menu input error
+
     while True:
         clear_screen()
         display_people(receipt)
         print("\n[a] Add  [e] Edit  [d] Delete  [c] Continue")
+
+        if input_error:
+            print("\nPlease enter a, e, d, or c.\n")
+            input_error = False
 
         choice = get_input("> ").lower()
 
@@ -215,7 +222,7 @@ def get_people(receipt: Receipt) -> None:
             return
 
         else:
-            print("Please enter a, e, d, or c.")
+            input_error = True
 
 
 # --------------------------------------------------------------------------------------
@@ -313,11 +320,18 @@ def get_items(receipt: Receipt) -> None:
         if not add_another:
             break
 
+
+    input_error = False
+
     while True:
         clear_screen()
         display_items(receipt)
 
         print("\n[a] Add  [e] Edit  [d] Delete  [c] Continue")
+
+        if input_error:
+            print("\nPlease enter a, e, d, or c.\n")
+            input_error = False
 
         choice = get_input("> ").lower()
 
@@ -334,7 +348,7 @@ def get_items(receipt: Receipt) -> None:
             return
 
         else:
-            print("Please enter a, e, d, or c.")
+            input_error = True
 
 
 # --------------------------------------------------------------------------------------
@@ -397,10 +411,16 @@ def assign_items(receipt: Receipt) -> None:
         print()
             
 
+    input_error = False
+
     while True:
         refresh_receipt(receipt)
 
         print("\n[e] Edit  [c] Continue")
+
+        if input_error:
+            print("\nPlease enter e or c.\n")
+            input_error = False
 
         choice = get_input("> ").lower()
 
@@ -411,7 +431,7 @@ def assign_items(receipt: Receipt) -> None:
             return
 
         else:
-            print("Please enter e or c.")
+            input_error = True
 
 
 # --------------------------------------------------------------------------------------
