@@ -394,8 +394,6 @@ def edit_shared_by(receipt: Receipt) -> None:
     
 def assign_items(receipt: Receipt) -> None:
     refresh_receipt(receipt)
-    display_people(receipt)
-    print()
 
     # ask who shared each item
     for item in receipt.items.values():
@@ -406,10 +404,9 @@ def assign_items(receipt: Receipt) -> None:
             )
 
         item.shared_by = names
+
         refresh_receipt(receipt)
-        display_people(receipt)
-        print()
-            
+        
 
     input_error = False
 

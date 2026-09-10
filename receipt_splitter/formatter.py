@@ -42,17 +42,20 @@ def format_receipt(
     lines.append(_divider(format, "="))
     lines.append("RECEIPT".center(format.line_width))
     lines.append(_divider(format, "="))
- 
+
+    lines.append("\nPEOPLE: " + ", ".join(receipt.people))
+
     lines.append("\nITEMS")
     lines.append(_divider(format))
 
+    for item in receipt.items.values():
+        lines.append(_money_row(format, item.name, item.price))
+        if item.shared_by:
+            names = ", ".join(item.shared_by)
+            lines.append(f"  Shared by: {names}")
+
 
     subtotal = calculate_subtotal(receipt)
-
-    for item in receipt.items.values():
-        names = ", ".join(item.shared_by)
-        lines.append(_money_row(format, item.name, item.price))
-        lines.append(f"  Shared by: {names}")
 
     lines.append(_divider(format))
     lines.append(_money_row(format, "Subtotal", subtotal))
