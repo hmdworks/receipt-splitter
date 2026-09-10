@@ -478,7 +478,7 @@ def add_other_charges(receipt: Receipt) -> None:
             validator = validation.validate_percentage_charge
             charge_kind = ChargeType.PERCENTAGE
         elif other_charge_type == 2:
-            prompt = "Please enter the amount for the extra charge: "
+            prompt = "Please enter the fixed amount for the extra charge: "
             validator = validation.validate_fixed_charge
             charge_kind = ChargeType.FIXED
 
@@ -513,6 +513,11 @@ def add_extra_charges(receipt: Receipt) -> None:
 
     if charge_type == 1:  # standard service charge
         add_service_charge(receipt)
+
+        refresh_receipt(receipt)
+
+        if wants_extra_charges():  # ask if another charge is needed
+            add_other_charges(receipt)
 
     elif charge_type == 2:  # other charge
         add_other_charges(receipt)
