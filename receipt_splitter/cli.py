@@ -268,6 +268,7 @@ def edit_item(receipt: Receipt) -> None:
             "New name: ",
             validation.validate_item_name,
             receipt.items,
+            False
         )
     else:
         new_name = item.name
@@ -355,41 +356,28 @@ def get_items(receipt: Receipt) -> None:
 # Shared items
 # --------------------------------------------------------------------------------------           
 
-def find_item(items, name):
-    name = name.strip()
-
-    for item in items:
-        if item.name == name:
-            return item
-
-    raise ValueError("Item not found.")
-
-
 def edit_shared_by(receipt: Receipt) -> None:
     refresh_receipt(receipt)
-    
-    items = list(receipt.items.values())
 
-    choice = get_input(
-        "\nEnter item name to edit (or press Enter to go back): "
+    name = get_validated_input(
+        "Enter item name to edit (or 0 to go back): ",
+        validation.validate_item_name,
+        list(receipt.items),
+        True,     
     )
 
-    if not choice:
+    if name == "0":
         return
 
-    try:
-        item = find_item(items, choice)
-    except ValueError as e:
-        print(e)
-        return
+    item = receipt.items[name]
 
-    names = get_validated_input(
+    shared_names = get_validated_input(
         f"Who shared {item.name}? (comma-separated): ",
         validation.validate_shared_names,
         receipt.people
     )
 
-    item.shared_by = names
+    item.shared_by = shared_names
 
     
 def assign_items(receipt: Receipt) -> None:
@@ -397,16 +385,16 @@ def assign_items(receipt: Receipt) -> None:
 
     # ask who shared each item
     for item in receipt.items.values():
-        names = get_validated_input(
+        shared_names = get_validated_input(
                 f"Who shared {item.name}? (comma-separated): ",
                 validation.validate_shared_names,
                 receipt.people
             )
 
-        item.shared_by = names
+        item.shared_by = shared_names
 
         refresh_receipt(receipt)
-        
+
 
     input_error = False
 

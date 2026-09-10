@@ -46,21 +46,27 @@ def validate_item_line(raw: str) -> tuple[str, str]:
     return name.strip(), price.strip()
 
 
-def validate_item_name(raw: str, existing_names) -> str:
+def validate_item_name(raw: str, item_names: list[str], need_existing: bool) -> str:
     name = raw.strip()
  
     if not name:
         raise ValueError("You must include an item name.")
- 
-    if name in existing_names:
-        raise ValueError("That item has already been added.")
+
+    if not need_existing:
+        if name in item_names:
+            raise ValueError("That item has already been added.")
+    else:
+        if name == "0":
+            return name
+        if name not in item_names:
+            raise ValueError("Please enter an existing item name.")
  
     return name
 
 
 def validate_item(raw: str, items) -> tuple[str, Decimal]:
     raw_name, raw_price = validate_item_line(raw)
-    name = validate_item_name(raw_name, items)
+    name = validate_item_name(raw_name, items, False)
     price = validate_price(raw_price)
     return name, price
 
