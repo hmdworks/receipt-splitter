@@ -29,13 +29,22 @@ class Charge:
     value: Decimal
 
 
+
+def find_key_ci(d: dict[str, object], name: str) -> str | None:
+    """Return the actual dict key matching 'name' (case-insensitive), or None."""
+    for key in d:
+        if key.lower() == name.lower():
+            return key
+    return None
+
+
 @dataclass
 class Receipt:
     people: dict[str, Person] = field(default_factory=dict)
     items: dict[str, ReceiptItem] = field(default_factory=dict)
     service_rate: Decimal = Decimal("0")
     extra_charges: list[Charge] = field(default_factory=list)
- 
+
     def add_person(self, name: str) -> None:
         self.people[name] = Person(name)
  

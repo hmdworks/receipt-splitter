@@ -2,7 +2,7 @@
 
 from .calculator import split_cost, apply_extra_charges, apply_rounding
 from . import validation
-from .models import Receipt, Charge, ChargeType
+from .models import Receipt, Charge, ChargeType, find_key_ci
 from .formatter import show_receipt, show_amount_owed
 
 import time
@@ -441,17 +441,22 @@ def edit_shared_by(receipt: Receipt) -> None:
     if name == "0":
         return
 
-    item = receipt.items[name]
+    for item in receipt.items.values():
+        if item.name.lower() == name.lower():
+            shared_item = item
+            break
 
     refresh_receipt(receipt)
 
     shared_names = get_validated_input(
-        f"Who shared {item.name}? (comma-separated): ",
+        f"Who shared {shared_item.name}? (comma-separated): ",
         validation.validate_shared_names,
         receipt.people
     )
 
-    item.shared_by = shared_names
+    shared_item.shared_by = [
+        find_key_ci(receipt.people, name) for name in shared_names
+    ]
 
     
 def assign_items(receipt: Receipt) -> None:
@@ -465,7 +470,9 @@ def assign_items(receipt: Receipt) -> None:
                 receipt.people
             )
 
-        item.shared_by = shared_names
+        item.shared_by = [
+            find_key_ci(receipt.people, name) for name in shared_names
+        ]
 
         refresh_receipt(receipt)
 

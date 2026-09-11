@@ -8,6 +8,7 @@ a valid input.
 """
 
 from decimal import Decimal, InvalidOperation
+from .models import find_key_ci
  
  
 def validate_num_people(raw: str) -> int:
@@ -31,7 +32,7 @@ def validate_person_name(raw: str, existing_names) -> str:
     if not any(char.isalpha() for char in name):
         raise ValueError("Name must contain at least one letter.")
  
-    if name in existing_names:
+    if any(name.lower() == existing.lower() for existing in existing_names):
         raise ValueError("That person has already been added.")
  
     return name
@@ -56,10 +57,10 @@ def validate_item_name(raw: str, item_names: list[str], need_existing: bool) -> 
         raise ValueError("You must include an item name.")
 
     if not need_existing:
-        if name in item_names:
+        if any(name.lower() == existing.lower() for existing in item_names):
             raise ValueError("That item has already been added.")
     else:
-        if name not in item_names:
+        if not any(name.lower() == existing.lower() for existing in item_names):
             raise ValueError("Please enter an existing item name.")
  
     return name
@@ -90,10 +91,10 @@ def validate_shared_names(raw: str, people) -> list[str]:
     if any(not name for name in names):
         raise ValueError("Please enter valid names separated by commas.")
  
-    if any(name not in people for name in names):
+    if any(find_key_ci(people, name) is None for name in names):
         raise ValueError("Please only enter names that exist.")
  
-    if len(names) != len(set(names)):
+    if len(names) != len(set(n.lower() for n in names)):
         raise ValueError("Please don't enter the same person more than once.")
  
     return names
