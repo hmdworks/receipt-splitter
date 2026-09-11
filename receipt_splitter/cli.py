@@ -1,13 +1,15 @@
 """Command-line interface for the receipt splitter."""
 
+import time
+
+from prompt_toolkit import PromptSession
+from prompt_toolkit.key_binding import KeyBindings
+
 from .calculator import split_cost, apply_extra_charges, apply_rounding
 from . import validation
 from .models import Receipt, Charge, ChargeType, find_key_ci
 from .formatter import show_receipt, show_amount_owed
 
-import time
-from prompt_toolkit import PromptSession
-from prompt_toolkit.key_binding import KeyBindings
 
 
 # add option to exit with Esc
@@ -36,7 +38,7 @@ def confirm_exit() -> bool:
         key_bindings=confirm_kb,
     )
 
-
+# returns user input and listens for Esc
 def get_input(prompt: str) -> str:
     while True:
         try:
@@ -49,6 +51,10 @@ def get_input(prompt: str) -> str:
 
 
 def get_validated_input(prompt, validator, *args, allow_back: bool = False, **kwargs):
+    """Validates user input with appropriate validator.
+    Can 'allow back' (return if user input is "0").
+    Clears prompts and errors with ANSI codes in helper fns."""
+
     error = False
     while True:
         user_input = get_input(prompt)
@@ -86,7 +92,6 @@ def choose_from_list(options, action: str):
     return options[choice - 1]
 
 
-# ANSI codes to clear inputs
 def clear_line() -> None:
     print("\033[1A\033[2K", end="")
 
@@ -143,7 +148,7 @@ def edit_person(receipt: Receipt) -> None:
     if person == "0":  # user chose to go back
         return
 
-    if person == -1:  # no person to edit
+    if person == -1:   # no person to edit
         return -1
 
     new_name = get_validated_input(
@@ -169,7 +174,7 @@ def delete_person(receipt: Receipt) -> None:
     if person == "0":  # user chose to go back
         return
 
-    if person == -1:  # no person to delete
+    if person == -1:   # no person to delete
         return -1
 
     receipt.remove_person(person.name)
@@ -197,7 +202,6 @@ def get_people(receipt: Receipt) -> None:
     clear_screen()
     display_people(receipt)
 
-    # validate number of people
     num_people = get_validated_input(
         "How many people? ",
         validation.validate_num_people,
@@ -206,7 +210,6 @@ def get_people(receipt: Receipt) -> None:
     clear_screen()
     display_people(receipt)
 
-    # get each person's name and validate
     for i in range(num_people):
 
         name = get_validated_input(
@@ -218,9 +221,9 @@ def get_people(receipt: Receipt) -> None:
         receipt.add_person(name)
 
 
-    input_error = False  # for edit menu input error
-    empty = False        # for checking if people is empty on continue
-    no_options = False   # user chose edit or delete with no people
+    input_error = False
+    empty = False
+    no_options = False
 
     while True:
         clear_screen()
@@ -318,7 +321,7 @@ def edit_item(receipt: Receipt) -> None:
     if item == "0":  # user chose to go back
         return
 
-    if item == -1:    # no item to edit
+    if item == -1:   # no item to edit
         return -1
 
     if get_validated_input(
@@ -326,7 +329,7 @@ def edit_item(receipt: Receipt) -> None:
         validation.validate_yes_no,
     ):
         new_name = get_validated_input(
-            "New name: ",
+            "Enter new name: ",
             validation.validate_item_name,
             [n for n in receipt.items if n.lower() != item.name.lower()],
             need_existing=False,
@@ -339,7 +342,7 @@ def edit_item(receipt: Receipt) -> None:
         validation.validate_yes_no,
     ):
         new_price = get_validated_input(
-            "New price: ",
+            "Enter new price: ",
             validation.validate_price,
         )
     else:
@@ -362,7 +365,7 @@ def delete_item(receipt: Receipt) -> None:
     if item == "0":   # user chose to go back
         return
 
-    if item == -1:     # no item to delete
+    if item == -1:    # no item to delete
         return -1
 
     receipt.remove_item(item.name)
@@ -376,19 +379,18 @@ def get_items(receipt: Receipt) -> None:
         display_items(receipt)
         print()
 
-        # ask to add another item
-        add_another = get_validated_input(
+        another = get_validated_input(
             "Add another item? (y/n): ",
             validation.validate_yes_no
         )
 
-        if not add_another:
+        if not another:
             break
 
 
-    input_error = False  # for edit menu input error
-    empty = False        # for checking if items is empty on continue
-    no_options = False   # user chose edit or delete with no items
+    input_error = False
+    empty = False
+    no_options = False
 
     while True:
         clear_screen()
@@ -479,7 +481,6 @@ def edit_shared_by(receipt: Receipt) -> None:
 def assign_items(receipt: Receipt) -> None:
     refresh_receipt(receipt)
 
-    # ask who shared each item
     for item in receipt.items.values():
         shared_names = get_validated_input(
                 f"Who shared {item.name}? (comma-separated): ",
@@ -537,16 +538,14 @@ def get_charge_type() -> int:
 
 
 def add_service_charge(receipt: Receipt) -> None:
-    # get valid service charge percentage and add to receipt
     receipt.service_rate = get_validated_input(
-        "Please enter a percentage for the service charge: ",
+        "Please enter the percentage for the service charge: ",
         validation.validate_percentage_charge
     )
 
 
 def add_other_charges(receipt: Receipt) -> None:
     while True:
-        # choose percentage or fixed
         other_charge_type = get_validated_input(
             "Choose: 1. a percentage charge (unequally split), or 2. a fixed charge (equally split): ",
             validation.validate_num_option,
@@ -555,7 +554,6 @@ def add_other_charges(receipt: Receipt) -> None:
 
         refresh_receipt(receipt)
 
-        # get charge value
         if other_charge_type == 1:
             prompt = "Please enter the percentage for the extra charge: "
             validator = validation.validate_percentage_charge
@@ -567,14 +565,12 @@ def add_other_charges(receipt: Receipt) -> None:
 
         other_charge_value = get_validated_input(prompt, validator)
 
-        # store charge in receipt
         receipt.extra_charges.append(
             Charge(charge_kind, other_charge_value)
         )
 
         refresh_receipt(receipt)
 
-        # ask whether to add another
         another = get_validated_input(
             "Would you like to add another charge? (y/n): ",
             validation.validate_yes_no,
@@ -622,10 +618,8 @@ def main():
         assign_items(receipt)
     
         split_cost(receipt)
-
         add_extra_charges(receipt)
         apply_extra_charges(receipt)
-    
         apply_rounding(receipt)
 
         clear_screen()

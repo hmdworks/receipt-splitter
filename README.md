@@ -4,52 +4,93 @@ A Python CLI app for splitting receipts between people.
 
 ## Current Version
 
-**V0.2 — Clean Prototype**
+**v0.3 — Usable CLI**
 
 ## Current Features
 
 - Add multiple people to a receipt
 - Add items and their prices
+- Confirm and edit people and items
 - Assign each item to the people who shared it
+- Edit who shared which item
 - Split item costs equally between people
 - Add a percentage service charge
-- Use `Decimal` for monetary calculations
-- Handle monetary rounding so individual totals match the receipt total
-- Basic input validation
-- Display a final receipt with:
+- Add extra charges, percentage or fixed
+- Uses `Decimal` for monetary calculations
+- Handles monetary rounding so individual totals match the receipt total
+- Comprehensive input validation
+- Displays a formatted final receipt with:
   - Item costs
   - Who shared each item
   - Subtotal
   - Service charge
-  - Total
+  - Extra charges
+  - Receipt total
   - Amount owed by each person
+  - Total of amount owed (should match receipt total)
 
+## Example Receipt
+
+After following the prompts, an example ending screen with the full receipt details is shown below:
+
+<table><tr><td>
+
+```text
+=============================================
+                   RECEIPT
+=============================================
+
+PEOPLE: Alice, Bob
+
+ITEMS
+---------------------------------------------
+Pizza                                £ 9.99
+  Shared by: Alice, Bob
+Chips                                £ 3.99
+  Shared by: Alice
+---------------------------------------------
+Subtotal                            £ 13.98
+Service charge (10%)                 £ 1.40
+Extra charge (fixed)                 £ 1.99
+
+---------------------------------------------
+Total                               £ 17.37
+
+
+AMOUNT OWED
+---------------------------------------------
+Alice                               £ 10.88
+Bob                                  £ 6.49
+---------------------------------------------
+Total                               £ 17.37
+---------------------------------------------
+```
 ## Roadmap
 
-### V0.1 — Initial Prototype
-✓ Basic receipt splitting
-✓ Multiple people and items
-✓ Equal item splitting
-✓ Service charge calculation
-✓ Basic receipt output
+### v0.1 — Initial Prototype
+- ✓ Basic receipt splitting
+- ✓ Multiple people and items
+- ✓ Equal item splitting
+- ✓ Service charge calculation
+- ✓ Basic receipt output
 
-### V0.2 — Clean Prototype (Current)
-✓ Proper program structure
-✓ Basic input validation
-✓ Robust monetary rounding
-✓ Improved receipt formatting
+### v0.2 — Clean Prototype
+- ✓ Proper program structure
+- ✓ Basic input validation
+- ✓ Robust monetary rounding
+- ✓ Improved receipt formatting
 
-### V0.3 — Usable CLI
-- Comprehensive input validation
-- Confirm and edit people and items
-- More flexible extra charges
-- Option to split or settle up
+### v0.3 — Usable CLI (current)
+- ✓ Comprehensive input validation
+- ✓ Confirm and edit people and items
+- ✓ More flexible extra charges
+- ✓ Clean receipt formatting
 
-### V0.4 — More Powerful Splitting
+### v0.4 — More Powerful Splitting
 - Unequal splitting
 - Save and load receipts
 
-### V0.5 — Finished CLI
+### v0.5 — Finished CLI
 - Finalise CLI functionality
 - Package as a standalone executable
 

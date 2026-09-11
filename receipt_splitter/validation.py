@@ -1,8 +1,7 @@
 """Input validation for the receipt splitter.
  
-Every function takes raw user input (plus whatever context it needs to
-check against - e.g. names already added) and returns a cleaned,
-validated value. Invalid input raises ValueError with a message that
+Every function takes raw user input and necessary context and returns a
+cleaned, validated value. Invalid input raises ValueError with a message that
 is printed straight to the user, and the user is prompted to enter 
 a valid input.
 """

@@ -37,7 +37,7 @@ def format_receipt(
     receipt: Receipt,
     format: ReceiptFormat = ReceiptFormat(),
 ) -> str:
-    """Build the receipt as a single string and returns it. No printing..."""
+    """Formats the receipt details into a single string and returns it."""
     lines = []
 
     lines.append(_divider(format, "="))
@@ -102,6 +102,7 @@ def format_amount_owed(
     receipt: Receipt,
     format: ReceiptFormat = ReceiptFormat(),
 ) -> str:
+    """Formats amount owed by every person and people total into a single string and returns it."""
     
     lines = []
     total = calculate_receipt_total(receipt)
