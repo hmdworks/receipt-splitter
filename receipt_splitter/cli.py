@@ -114,6 +114,7 @@ def refresh_receipt(receipt: Receipt) -> None:
     clear_screen()
     show_receipt(receipt)
     print()
+    print()
 
 
 # --------------------------------------------------------------------------------------
@@ -283,7 +284,7 @@ def edit_item(receipt: Receipt) -> None:
     if item is None:  # user chose to go back
         return
 
-    if item is -1:    # no item to edit
+    if item == -1:    # no item to edit
         return -1
 
     if get_validated_input(
@@ -327,7 +328,7 @@ def delete_item(receipt: Receipt) -> None:
     if item is None:   # user chose to go back
         return
 
-    if item is -1:     # no item to delete
+    if item == -1:     # no item to delete
         return -1
 
     receipt.remove_item(item.name)
@@ -445,7 +446,7 @@ def assign_items(receipt: Receipt) -> None:
     while True:
         refresh_receipt(receipt)
 
-        print("\n[e] Edit  [c] Continue")
+        print("[e] Edit  [c] Continue")
 
         if input_error:
             print("\nPlease enter e or c.\n")
@@ -476,7 +477,7 @@ def wants_extra_charges() -> bool:
 
 def get_charge_type() -> int:
     return get_validated_input(
-        "Choose charge type: 1. service charge, 2. other (percentage or fixed): ",
+        "Choose: 1. standard service charge, or 2. other (percentage or fixed): ",
         validation.validate_num_option,
         2,
     )
@@ -494,7 +495,7 @@ def add_other_charges(receipt: Receipt) -> None:
     while True:
         # choose percentage or fixed
         other_charge_type = get_validated_input(
-            "Choose 1. a percentage charge (unequally split), or 2. a fixed charge (equally split): ",
+            "Choose: 1. a percentage charge (unequally split), or 2. a fixed charge (equally split): ",
             validation.validate_num_option,
             2,
         )
@@ -503,7 +504,7 @@ def add_other_charges(receipt: Receipt) -> None:
 
         # get charge value
         if other_charge_type == 1:
-            prompt = "Please enter a percentage for the extra charge: "
+            prompt = "Please enter the percentage for the extra charge: "
             validator = validation.validate_percentage_charge
             charge_kind = ChargeType.PERCENTAGE
         elif other_charge_type == 2:

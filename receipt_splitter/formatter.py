@@ -9,9 +9,9 @@ from .calculator import calculate_subtotal, calculate_receipt_total, calculate_p
 
 @dataclass
 class ReceiptFormat:
-    line_width: int = 40
-    label_width: int = 25
-    amount_width: int = 8
+    line_width: int = 45
+    amount_width: int = 7
+    label_width: int = line_width - amount_width - 3
     currency: str = "£"
 
 
@@ -26,9 +26,10 @@ def _money_row(
 ) -> str:
     amount = amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
+    money = f"{format.currency} {amount:.2f}"
+
     return (
-        f"{label:<{format.label_width}} "
-        f"{format.currency}{amount:>{format.amount_width}.2f}"
+        f"{label:<{format.label_width}} {money:>{format.amount_width}}"
     )
 
 
