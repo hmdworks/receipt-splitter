@@ -256,8 +256,16 @@ def get_people(receipt: Receipt) -> None:
             if not receipt.people:
                 empty = True
             else:
-                return
+                clear_screen()
+                display_people(receipt)
+                print()
 
+                confirmed = get_validated_input(
+                    "You won't be able to edit people after this. Continue? (y/n): ",
+                    validation.validate_yes_no,
+                )
+                if confirmed:
+                    return
         else:
             input_error = True
 
@@ -417,7 +425,16 @@ def get_items(receipt: Receipt) -> None:
             if not receipt.items:
                 empty = True
             else:
-                return
+                clear_screen()
+                display_items(receipt)
+                print()
+
+                confirmed = get_validated_input(
+                    "You won't be able to edit items after this. Continue? (y/n): ",
+                    validation.validate_yes_no,
+                )
+                if confirmed:
+                    return
 
         else:
             input_error = True
