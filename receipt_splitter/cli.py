@@ -149,7 +149,7 @@ def edit_person(receipt: Receipt) -> None:
     new_name = get_validated_input(
         f"Enter new name for {person.name} (or 0 to go back): ",
         validation.validate_person_name,
-        receipt.people,
+        [n for n in receipt.people if n.lower() != person.name.lower()],
         allow_back=True,
     )
 
@@ -314,20 +314,20 @@ def edit_item(receipt: Receipt) -> None:
         return -1
 
     if get_validated_input(
-        "Change name? (y/n): ",
+        f"Change item name? (current: {item.name}) (y/n): ",
         validation.validate_yes_no,
     ):
         new_name = get_validated_input(
             "New name: ",
             validation.validate_item_name,
-            receipt.items,
+            [n for n in receipt.items if n.lower() != item.name.lower()],
             need_existing=False,
         )
     else:
         new_name = item.name
 
     if get_validated_input(
-        "Change price? (y/n): ",
+        f"Change price? (current: {item.price:.2f}) (y/n): ",
         validation.validate_yes_no,
     ):
         new_price = get_validated_input(
