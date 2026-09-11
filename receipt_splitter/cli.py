@@ -48,11 +48,16 @@ def get_input(prompt: str) -> str:
             clear_lines(3)
 
 
-def get_validated_input(prompt, validator, *args, **kwargs):
+def get_validated_input(prompt, validator, *args, allow_back: bool = False, **kwargs):
     error = False
     while True:
+        user_input = get_input(prompt)
+
+        if allow_back and user_input == "0":
+            return user_input
+        
         try:
-            value = validator(get_input(prompt), *args, **kwargs)
+            value = validator(user_input, *args, **kwargs)
             clear_line()
             return value
         except ValueError as e:
@@ -72,11 +77,11 @@ def choose_from_list(options, action: str):
         f"Enter number for {action} (or 0 to go back): ",
         validation.validate_num_option,
         len(options),
-        allow_zero=True,
+        allow_back=True,
     )
 
-    if choice == 0:
-        return None
+    if choice == "0":
+        return "0"
 
     return options[choice - 1]
 
@@ -135,17 +140,21 @@ def edit_person(receipt: Receipt) -> None:
 
     person = choose_from_list(list(receipt.people.values()), "person to edit")
 
-    if person is None:  # user chose to go back
+    if person == "0":  # user chose to go back
         return
 
     if person == -1:  # no person to edit
         return -1
 
     new_name = get_validated_input(
-        f"New name [{person.name}]: ",
+        f"Enter new name for {person.name} (or 0 to go back): ",
         validation.validate_person_name,
-        receipt.people
+        receipt.people,
+        allow_back=True,
     )
+
+    if new_name == "0":
+        return
 
     receipt.rename_person(person.name, new_name)
 
@@ -157,7 +166,7 @@ def delete_person(receipt: Receipt) -> None:
 
     person = choose_from_list(list(receipt.people.values()), "person to delete")
 
-    if person is None:  # user chose to go back
+    if person == "0":  # user chose to go back
         return
 
     if person == -1:  # no person to delete
@@ -172,10 +181,14 @@ def add_person(receipt: Receipt) -> None:
     print()
 
     name = get_validated_input(
-        "Name: ",
+        "Enter name for new person (or 0 to go back): ",
         validation.validate_person_name,
-        receipt.people
+        receipt.people,
+        allow_back=True,
     )
+
+    if name == "0":
+        return
 
     receipt.add_person(name)
 
@@ -260,16 +273,29 @@ def display_items(receipt: Receipt) -> None:
         print(f"{i}. {item.name} - £{item.price:.2f}")
 
 
-def add_item(receipt: Receipt) -> None:
+def add_item(receipt: Receipt, allow_item_back: bool = False) -> None:
     clear_screen()
     display_items(receipt)
-    print()
 
-    name, price = get_validated_input(
-        "Add item (name, price): ",
+    if receipt.items:
+        print()
+
+    prompt = "Add item (name, price)"
+
+    if allow_item_back:
+        prompt += " (or 0 to go back)"
+
+    value = get_validated_input(
+        f"{prompt}: ",
         validation.validate_item,
         receipt.items,
+        allow_back=allow_item_back
     )
+
+    if value == "0":
+        return
+
+    name, price = value
 
     receipt.add_item(name, price)
 
@@ -281,7 +307,7 @@ def edit_item(receipt: Receipt) -> None:
 
     item = choose_from_list(list(receipt.items.values()), "item to edit")
 
-    if item is None:  # user chose to go back
+    if item == "0":  # user chose to go back
         return
 
     if item == -1:    # no item to edit
@@ -295,7 +321,7 @@ def edit_item(receipt: Receipt) -> None:
             "New name: ",
             validation.validate_item_name,
             receipt.items,
-            False
+            need_existing=False,
         )
     else:
         new_name = item.name
@@ -325,7 +351,7 @@ def delete_item(receipt: Receipt) -> None:
 
     item = choose_from_list(list(receipt.items.values()), "item to delete")
 
-    if item is None:   # user chose to go back
+    if item == "0":   # user chose to go back
         return
 
     if item == -1:     # no item to delete
@@ -377,7 +403,7 @@ def get_items(receipt: Receipt) -> None:
         choice = get_input("> ").lower()
 
         if choice == "a":
-            add_item(receipt)
+            add_item(receipt, allow_item_back=True)
 
         elif choice == "e":
             if edit_item(receipt) == -1:
@@ -408,13 +434,16 @@ def edit_shared_by(receipt: Receipt) -> None:
         "Enter item name to edit (or 0 to go back): ",
         validation.validate_item_name,
         list(receipt.items),
-        True,     
+        allow_back=True,
+        need_existing=True,
     )
 
     if name == "0":
         return
 
     item = receipt.items[name]
+
+    refresh_receipt(receipt)
 
     shared_names = get_validated_input(
         f"Who shared {item.name}? (comma-separated): ",
