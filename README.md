@@ -65,6 +65,8 @@ Bob                                  £ 6.49
 Total                               £ 17.37
 ---------------------------------------------
 ```
+</td></tr></table>
+
 ## Roadmap
 
 ### v0.1 — Initial Prototype
