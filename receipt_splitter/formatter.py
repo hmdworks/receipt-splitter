@@ -32,9 +32,7 @@ def _money_row(
 
     money = f"{format.currency} {amount:.2f}"
 
-    return (
-        f"{label:<{format.label_width}} {money:>{format.amount_width}}"
-    )
+    return f"{label:<{format.label_width}} {money:>{format.amount_width}}"
 
 
 def format_receipt(
@@ -61,7 +59,6 @@ def format_receipt(
         if item.shared_by:
             names = ", ".join(item.shared_by)
             lines.append(f"  Shared by: {names}")
-
 
     subtotal = calculate_subtotal(receipt)
 

@@ -27,7 +27,6 @@ def calculate_people_total(receipt: Receipt) -> Decimal:
     return sum(person.total for person in receipt.people.values())
 
 
-
 def split_cost(receipt: Receipt) -> None:
     for item in receipt.items.values():
         share = item.price / len(item.shared_by)
@@ -43,11 +42,10 @@ def apply_extra_charges(receipt: Receipt) -> None:
             if charge.type == ChargeType.PERCENTAGE:
                 extra_charges += person.total * charge.value
             elif charge.type == ChargeType.FIXED:
-                extra_charges += (charge.value / len(receipt.people))
+                extra_charges += charge.value / len(receipt.people)
 
-        person.total *= (1 + receipt.service_rate)
+        person.total *= 1 + receipt.service_rate
         person.total += extra_charges
-
 
 
 def _round_down_to_penny(amount: Decimal) -> Decimal:
@@ -63,7 +61,7 @@ def _distribute_pennies(rounded: dict, remainders: dict, pennies: int) -> None:
     largest leftover fractional remainder. Loops back through the list if
     there are more pennies than people."""
     order = sorted(remainders, key=remainders.get, reverse=True)
- 
+
     for i in range(pennies):
         name = order[i % len(order)]
         rounded[name] += Decimal("0.01")
@@ -85,9 +83,8 @@ def apply_rounding(receipt: Receipt):
     pennies = int(difference * 100)
 
     remainders = {
-        name: receipt.people[name].total - rounded[name]
-        for name in receipt.people
-        }
+        name: receipt.people[name].total - rounded[name] for name in receipt.people
+    }
     _distribute_pennies(rounded, remainders, pennies)
 
     for name, person in receipt.people.items():
