@@ -530,7 +530,7 @@ def wants_extra_charges() -> bool:
 
 def get_charge_type() -> int:
     return get_validated_input(
-        "Choose: 1. standard service charge, or 2. other (percentage or fixed): ",
+        "Choose: 1. standard service charge, or 2. other (percentage/fixed): ",
         validation.validate_num_option,
         2,
     )
@@ -538,7 +538,7 @@ def get_charge_type() -> int:
 
 def add_service_charge(receipt: Receipt) -> None:
     receipt.service_rate = get_validated_input(
-        "Please enter the percentage for the service charge: ",
+        "Please enter the service charge percentage: ",
         validation.validate_percentage_charge,
     )
 
@@ -546,7 +546,7 @@ def add_service_charge(receipt: Receipt) -> None:
 def add_other_charges(receipt: Receipt) -> None:
     while True:
         other_charge_type = get_validated_input(
-            "Choose: 1. a percentage charge (unequally split), or 2. a fixed charge (equally split): ",
+            "Choose: 1. percentage charge (unequal split), or 2. fixed charge (equal split): ",
             validation.validate_num_option,
             2,
         )
@@ -554,11 +554,11 @@ def add_other_charges(receipt: Receipt) -> None:
         refresh_receipt(receipt)
 
         if other_charge_type == 1:
-            prompt = "Please enter the percentage for the extra charge: "
+            prompt = "Please enter the extra charge percentage: "
             validator = validation.validate_percentage_charge
             charge_kind = ChargeType.PERCENTAGE
         elif other_charge_type == 2:
-            prompt = "Please enter the fixed amount for the extra charge: "
+            prompt = "Please enter the extra charge amount: "
             validator = validation.validate_fixed_charge
             charge_kind = ChargeType.FIXED
 
@@ -568,12 +568,7 @@ def add_other_charges(receipt: Receipt) -> None:
 
         refresh_receipt(receipt)
 
-        another = get_validated_input(
-            "Would you like to add another charge? (y/n): ",
-            validation.validate_yes_no,
-        )
-
-        if not another:
+        if not wants_extra_charges():
             break
 
 
