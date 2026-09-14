@@ -13,7 +13,7 @@ class ChargeType(Enum):
 @dataclass
 class Person:
     name: str
-    total: Decimal = Decimal("0")
+    total: Decimal = Decimal(0)
 
 
 @dataclass
@@ -42,7 +42,7 @@ def find_key_ci(d: dict[str, object], name: str) -> str | None:
 class Receipt:
     people: dict[str, Person] = field(default_factory=dict)
     items: dict[str, ReceiptItem] = field(default_factory=dict)
-    service_rate: Decimal = Decimal("0")
+    service_rate: Decimal = Decimal(0)
     extra_charges: list[Charge] = field(default_factory=list)
 
     def add_person(self, name: str) -> None:

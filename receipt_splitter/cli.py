@@ -5,12 +5,10 @@ import time
 from prompt_toolkit import PromptSession
 from prompt_toolkit.key_binding import KeyBindings
 
-from .calculator import split_cost, apply_extra_charges, apply_rounding
 from . import validation
-from .models import Receipt, Charge, ChargeType, find_key_ci
-from .formatter import show_receipt, show_amount_owed
-
-
+from .calculator import apply_extra_charges, apply_rounding, split_cost
+from .formatter import show_amount_owed, show_receipt
+from .models import Charge, ChargeType, Receipt, find_key_ci
 
 # add option to exit with Esc
 kb = KeyBindings()

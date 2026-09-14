@@ -7,9 +7,10 @@ a valid input.
 """
 
 from decimal import Decimal, InvalidOperation
+
 from .models import find_key_ci
- 
- 
+
+
 def validate_num_people(raw: str) -> int:
     try:
         num = int(raw.strip())
@@ -93,7 +94,7 @@ def validate_shared_names(raw: str, people) -> list[str]:
     if any(find_key_ci(people, name) is None for name in names):
         raise ValueError("Please only enter names that exist.")
  
-    if len(names) != len(set(n.lower() for n in names)):
+    if len(names) != len({n.lower() for n in names}):
         raise ValueError("Please don't enter the same person more than once.")
  
     return names

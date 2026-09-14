@@ -1,10 +1,14 @@
 """Receipt formatter for the receipt splitter."""
 
 from dataclasses import dataclass
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 
-from .models import Receipt, ChargeType
-from .calculator import calculate_subtotal, calculate_receipt_total, calculate_people_total
+from .calculator import (
+    calculate_people_total,
+    calculate_receipt_total,
+    calculate_subtotal,
+)
+from .models import ChargeType, Receipt
 
 
 @dataclass
@@ -35,9 +39,12 @@ def _money_row(
 
 def format_receipt(
     receipt: Receipt,
-    format: ReceiptFormat = ReceiptFormat(),
+    format: ReceiptFormat | None = None,
 ) -> str:
     """Formats the receipt details into a single string and returns it."""
+    if format is None:
+        format = ReceiptFormat()
+
     lines = []
 
     lines.append(_divider(format, "="))
@@ -100,10 +107,12 @@ def format_receipt(
 
 def format_amount_owed(
     receipt: Receipt,
-    format: ReceiptFormat = ReceiptFormat(),
+    format: ReceiptFormat | None = None,
 ) -> str:
     """Formats amount owed by every person and people total into a single string and returns it."""
-    
+    if format is None:
+        format = ReceiptFormat()
+
     lines = []
     total = calculate_receipt_total(receipt)
 
