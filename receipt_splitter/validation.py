@@ -86,6 +86,11 @@ def validate_price(raw: str) -> Decimal:
 
 
 def validate_shared_names(raw: str, people) -> list[str]:
+    raw = raw.strip()
+    
+    if raw.lower() == "all":
+        return list(people.keys())
+    
     names = [name.strip() for name in raw.split(",")]
 
     if any(not name for name in names):

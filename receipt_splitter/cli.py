@@ -471,7 +471,7 @@ def edit_shared_by(receipt: Receipt) -> None:
     refresh_receipt(receipt)
 
     shared_names = get_validated_input(
-        f"Who shared {shared_item.name}? (comma-separated): ",
+        f'Who shared {shared_item.name}? (e.g. Alice, Bob or "all"): ',
         validation.validate_shared_names,
         receipt.people,
     )
@@ -484,7 +484,7 @@ def assign_items(receipt: Receipt) -> None:
 
     for item in receipt.items.values():
         shared_names = get_validated_input(
-            f"Who shared {item.name}? (comma-separated): ",
+            f'Who shared {item.name}? (e.g. Alice, Bob or "all"): ',
             validation.validate_shared_names,
             receipt.people,
         )
