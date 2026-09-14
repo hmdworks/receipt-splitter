@@ -10,7 +10,7 @@ from .calculator import apply_extra_charges, apply_rounding, split_cost
 from .formatter import show_amount_owed, show_receipt
 from .models import Charge, ChargeType, Receipt, find_key_ci
 
-# add option to exit with Esc
+
 kb = KeyBindings()
 
 
@@ -22,7 +22,6 @@ def _(event):
 session = PromptSession()
 
 
-# add confirmation on Esc
 def confirm_exit() -> bool:
     confirm_kb = KeyBindings()
 
@@ -40,7 +39,6 @@ def confirm_exit() -> bool:
     )
 
 
-# returns user input and listens for Esc
 def get_input(prompt: str) -> str:
     while True:
         try:
@@ -69,9 +67,9 @@ def get_validated_input(prompt, validator, *args, allow_back: bool = False, **kw
             clear_line()
             return value
         except ValueError as e:
-            clear_line()  # clear prompt
+            clear_line()
             if error:
-                clear_lines(2)  # clear previous error plus blank line
+                clear_lines(2)
             print(e)
             print()
             error = True
@@ -148,10 +146,10 @@ def edit_person(receipt: Receipt) -> None:
 
     person = choose_from_list(list(receipt.people.values()), "person to edit")
 
-    if person == "0":  # user chose to go back
+    if person == "0":
         return
 
-    if person == -1:  # no person to edit
+    if person == -1:
         return -1
 
     new_name = get_validated_input(
@@ -174,10 +172,10 @@ def delete_person(receipt: Receipt) -> None:
 
     person = choose_from_list(list(receipt.people.values()), "person to delete")
 
-    if person == "0":  # user chose to go back
+    if person == "0":
         return
 
-    if person == -1:  # no person to delete
+    if person == -1:
         return -1
 
     receipt.remove_person(person.name)
@@ -320,10 +318,10 @@ def edit_item(receipt: Receipt) -> None:
 
     item = choose_from_list(list(receipt.items.values()), "item to edit")
 
-    if item == "0":  # user chose to go back
+    if item == "0":
         return
 
-    if item == -1:  # no item to edit
+    if item == -1:
         return -1
 
     if get_validated_input(
@@ -364,10 +362,10 @@ def delete_item(receipt: Receipt) -> None:
 
     item = choose_from_list(list(receipt.items.values()), "item to delete")
 
-    if item == "0":  # user chose to go back
+    if item == "0":
         return
 
-    if item == -1:  # no item to delete
+    if item == -1:
         return -1
 
     receipt.remove_item(item.name)
@@ -582,15 +580,15 @@ def add_extra_charges(receipt: Receipt) -> None:
 
     refresh_receipt(receipt)
 
-    if charge_type == 1:  # standard service charge
+    if charge_type == 1:
         add_service_charge(receipt)
 
         refresh_receipt(receipt)
 
-        if wants_extra_charges():  # ask if another charge is needed
+        if wants_extra_charges():
             add_other_charges(receipt)
 
-    elif charge_type == 2:  # other charge
+    elif charge_type == 2:
         add_other_charges(receipt)
 
 
