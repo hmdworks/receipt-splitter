@@ -56,7 +56,7 @@ def format_receipt(
 
     for item in receipt.items.values():
         lines.append(_money_row(format, item.name, item.price))
-        if item.shared_by:
+        if item.shared_by and len(receipt.people) > 1:
             names = ", ".join(item.shared_by)
             lines.append(f"  Shared by: {names}")
 

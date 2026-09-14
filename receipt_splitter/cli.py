@@ -480,6 +480,12 @@ def edit_shared_by(receipt: Receipt) -> None:
 def assign_items(receipt: Receipt) -> None:
     refresh_receipt(receipt)
 
+    if len(receipt.people) == 1:
+        person = next(iter(receipt.people))
+        for item in receipt.items.values():  
+            item.shared_by = [person]
+        return
+
     for item in receipt.items.values():
         shared_names = get_validated_input(
             f'Who shared {item.name}? (e.g. Alice, Bob or "all"): ',
