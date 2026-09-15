@@ -20,7 +20,7 @@ class Person:
 class ReceiptItem:
     name: str
     price: Decimal
-    shared_by: list[str] = field(default_factory=list)
+    shared_by: list[tuple[str, Decimal | None]] = field(default_factory=list)
 
 
 @dataclass

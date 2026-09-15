@@ -29,8 +29,14 @@ def calculate_people_total(receipt: Receipt) -> Decimal:
 
 def split_cost(receipt: Receipt) -> None:
     for item in receipt.items.values():
-        share = item.price / len(item.shared_by)
-        for name in item.shared_by:
+        num_people = len(item.shared_by)
+
+        for name, weight in item.shared_by:
+            if not weight:
+                share = item.price / num_people
+            else:
+                share = item.price * weight
+
             receipt.people[name].total += share
 
 

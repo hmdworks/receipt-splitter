@@ -57,8 +57,18 @@ def format_receipt(
     for item in receipt.items.values():
         lines.append(_money_row(format, item.name, item.price))
         if item.shared_by and len(receipt.people) > 1:
-            names = ", ".join(item.shared_by)
-            lines.append(f"  Shared by: {names}")
+            shared_names = []
+            for entry in item.shared_by:
+                person_name = entry[0]
+                person_weight = entry[1]
+
+                if not person_weight:
+                    shared_names.append(person_name)
+                else:
+                    percentage = person_weight * 100
+                    shared_names.append(f"{person_name} ({percentage.normalize():f}%)")
+
+            lines.append(f"  Shared by: {', '.join(shared_names)}")
 
     subtotal = calculate_subtotal(receipt)
 

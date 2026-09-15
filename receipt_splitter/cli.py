@@ -474,7 +474,62 @@ def edit_shared_by(receipt: Receipt) -> None:
         receipt.people,
     )
 
-    shared_item.shared_by = [find_key_ci(receipt.people, name) for name in shared_names]
+    shared_item.shared_by = [
+        (find_key_ci(receipt.people, name), None) for name in shared_names
+    ]
+
+
+def edit_item_weights(receipt: Receipt) -> None:
+    refresh_receipt(receipt)
+
+    name = get_validated_input(
+        "Enter item name to adjust percentage weights (or 0 to go back): ",
+        validation.validate_item_name,
+        list(receipt.items),
+        allow_back=True,
+        need_existing=True,
+    )
+
+    if name == "0":
+        return
+
+    for item in receipt.items.values():
+        if item.name.lower() == name.lower():
+            shared_item = item
+            break
+
+    if len(shared_item.shared_by) == 1:
+        print(f"\n'{shared_item.name}' is only shared by 1 person. Custom weights aren't needed.")
+        return
+    
+    error = False
+
+    while True:
+        refresh_receipt(receipt)
+
+        if error:
+            print(error_message)
+            print("Please re-enter weights for each person.\n")
+
+        collected_weights = []
+
+        for i in range(len(shared_item.shared_by)):
+            person_name = shared_item.shared_by[i][0]
+            w = get_validated_input(
+                f"Enter percentage weight for {person_name} (must all add to 100): ",
+                validation.validate_weight_input,
+            )
+            collected_weights.append(w)
+            shared_item.shared_by[i] = (person_name, w)
+
+            refresh_receipt(receipt)
+
+        try:
+            if validation.validate_item_weights_add_to_one(collected_weights):
+                break
+        except ValueError as e:
+            error = True
+            error_message = e
 
 
 def assign_items(receipt: Receipt) -> None:
@@ -493,25 +548,36 @@ def assign_items(receipt: Receipt) -> None:
             receipt.people,
         )
 
-        item.shared_by = [find_key_ci(receipt.people, name) for name in shared_names]
+        item.shared_by = [
+            (find_key_ci(receipt.people, name), None) for name in shared_names
+        ]
 
         refresh_receipt(receipt)
 
     input_error = False
 
+    if get_validated_input(
+        "Were any items shared unequally? (y/n): ",
+        validation.validate_yes_no,
+    ):
+        edit_item_weights(receipt)
+
     while True:
         refresh_receipt(receipt)
 
-        print("[e] Edit  [c] Continue")
+        print("[e] Edit who shared  [w] Edit weights  [c] Continue")
 
         if input_error:
-            print("\nPlease enter e or c.\n")
+            print("\nPlease enter e, w or c.\n")
             input_error = False
 
         choice = get_input("> ").lower()
 
         if choice == "e":
             edit_shared_by(receipt)
+
+        elif choice == "w":
+            edit_item_weights(receipt)
 
         elif choice == "c":
             return
