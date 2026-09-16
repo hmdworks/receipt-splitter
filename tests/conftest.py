@@ -1,5 +1,6 @@
-import pytest
 from decimal import Decimal
+
+import pytest
 
 from receipt_splitter.models import Charge, ChargeType, Receipt
 
@@ -20,7 +21,12 @@ def sample_receipt():
     receipt.add_item("Pizza", Decimal("20.00"))
     receipt.add_item("Drinks", Decimal("10.00"))
 
-    receipt.items["Pizza"].shared_by = ["Alice", "Bob"]
-    receipt.items["Drinks"].shared_by = ["Alice"]
+    receipt.items["Pizza"].shared_by = [
+        ("Alice", None, None),
+        ("Bob", None, None),
+    ]
+    receipt.items["Drinks"].shared_by = [
+        ("Alice", None, None)
+    ]
 
     return receipt
