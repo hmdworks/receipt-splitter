@@ -601,7 +601,14 @@ def assign_items(receipt: Receipt) -> None:
             edit_item_weights(receipt)
 
         elif choice == "c":
-            return
+            refresh_receipt(receipt)
+            
+            confirmed = get_validated_input(
+                "You won't be able to edit shared details after this. Continue? (y/n): ",
+                validation.validate_yes_no,
+            )
+            if confirmed:
+                return
 
         else:
             input_error = True
