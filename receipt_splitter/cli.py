@@ -1,6 +1,7 @@
 """Command-line interface for the receipt splitter."""
 
 import time
+from decimal import Decimal
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.key_binding import KeyBindings
@@ -111,13 +112,16 @@ def display_header(title: str) -> None:
     print()
 
 
-def display_start_menu() -> None:
-    display_header("ReceiptSplitter")
+def display_start_menu() -> str:
+    display_header("~~* Receipt Splitter *~~")
     print("Split your bill, fairly.\n")
-    print("Press Enter to start!")
+    print("Press Enter to start.")
+    print("Enter 'f' for Fast Split mode!")
     print("Press Esc anytime to quit.\n")
 
-    get_input("")
+    menu_choice = get_input("")
+
+    return menu_choice
 
 
 def refresh_receipt(receipt: Receipt) -> None:
@@ -127,6 +131,75 @@ def refresh_receipt(receipt: Receipt) -> None:
     print()
 
 
+# ======================================================================================
+### FAST SPLIT ###
+# ======================================================================================
+
+def fast_split(receipt: Receipt) -> None:
+    while True:
+        clear_screen()
+        display_header("**//FAST SPLIT//**")
+        show_receipt(receipt)
+
+        print("\n\nAdd item (e.g. pizza, 10, alice, bob or '0' when done): ")
+        details = get_validated_input(
+            "> ",
+            validation.validate_fast_split_line,
+            receipt.items,
+            allow_back=True
+        )
+
+        if details == "0":
+            break
+
+        item_name, item_price, *shared_names = details
+
+        for name in shared_names:
+            if name not in receipt.people:
+                receipt.add_person(name=name)
+
+        receipt.add_item(item_name, item_price)
+
+        shared_tuples = [
+            (name, None, None) for name in shared_names
+        ]
+        receipt.items[item_name].shared_by = shared_tuples
+
+    clear_screen()
+    display_header("**//FAST SPLIT//**")
+    show_receipt(receipt)
+
+    clean_charges = get_validated_input(
+        "\n\nAny extra charges? (e.g. 2, 10%, 5%) ",
+        validation.validate_fast_split_extra_charges,
+    )
+
+    for c in clean_charges:
+        if c.endswith("%"):
+            receipt.extra_charges.append(
+                Charge(
+                    ChargeType.PERCENTAGE,
+                    Decimal(c.removesuffix("%")) / 100
+                )
+            )
+        else:
+            receipt.extra_charges.append(Charge(ChargeType.FIXED, Decimal(c)))
+
+    split_cost(receipt)
+    apply_extra_charges(receipt)
+    apply_rounding(receipt)
+
+    clear_screen()
+    show_receipt(receipt)
+    show_amount_owed(receipt)
+    print()
+
+    return
+
+
+# ======================================================================================
+### NORMAL SPLIT ###
+# ======================================================================================
 # --------------------------------------------------------------------------------------
 # People
 # --------------------------------------------------------------------------------------
@@ -602,7 +675,7 @@ def assign_items(receipt: Receipt) -> None:
 
         elif choice == "c":
             refresh_receipt(receipt)
-            
+
             confirmed = get_validated_input(
                 "You won't be able to edit shared details after this. Continue? (y/n): ",
                 validation.validate_yes_no,
@@ -701,7 +774,10 @@ def main():
     try:
         receipt = Receipt()
 
-        display_start_menu()
+        menu_choice = display_start_menu()
+        if menu_choice.strip().lower() == "f":
+            fast_split(receipt)
+            return
 
         get_people(receipt)
         get_items(receipt)

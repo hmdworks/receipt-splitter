@@ -82,6 +82,9 @@ def validate_price(raw: str) -> Decimal:
     if price <= 0:
         raise ValueError("Price must be greater than 0.")
 
+    if price.as_tuple().exponent < -2:
+        raise ValueError("Price must have at most 2 decimal places.")
+
     return price
 
 
@@ -184,3 +187,68 @@ def validate_shares_input(raw: str) -> Decimal:
         raise ValueError("Please enter an integer share greater than zero.")
 
     return Decimal(raw)
+
+
+def validate_fast_split_line(raw: str, items: dict) -> list[str | Decimal]:
+    details = [detail.strip() for detail in raw.split(",")]
+
+    if len(details) <= 2:
+        raise ValueError("Please enter sufficient details.")
+
+    item, price, *names = details
+
+    if any(not detail for detail in details):
+        raise ValueError("Please enter valid details separated by commas.")
+
+    if any(item.lower() == i.lower() for i in items):
+        raise ValueError("That item has already been added.")
+
+    if not any(char.isalpha() for char in item):
+        raise ValueError("Item name must contain at least one letter.")
+
+    clean_price = validate_price(price)
+    details[1] = clean_price
+
+    for name in names:
+        if not any(char.isalpha() for char in name):
+            raise ValueError("Person names must contain at least one letter.")
+
+    if len(names) != len({n.lower() for n in names}):
+        raise ValueError("Please don't enter the same person more than once.")
+
+    return details
+
+
+def validate_fast_split_extra_charges(raw: str) -> list[str]:
+    raw = raw.strip()
+    if not raw:
+        return []
+
+    charges = [c.strip() for c in raw.split(",")]
+
+    if any(not c for c in charges):
+        raise ValueError("Please enter valid charges separated by commas.")
+
+    for charge in charges:
+        ends_in_percent = charge.endswith("%")
+
+        if "%" in charge[:-1]:
+            raise ValueError("Please enter valid percentages with '%' at the end.")
+
+        charge_num = charge.removesuffix("%") if ends_in_percent else charge
+
+        try:
+            value = Decimal(charge_num)
+        except InvalidOperation:
+            raise ValueError("Please enter valid numbers for charges.")
+
+        if value <= 0:
+            raise ValueError("Charges must be greater than zero. ")
+
+        if value.as_tuple().exponent < -2:
+            raise ValueError("Charges cannot have more than 2 decimal places.")
+
+        if ends_in_percent and value > 100:
+            raise ValueError("Percentage charge must not exceed 100%.")
+
+    return charges
