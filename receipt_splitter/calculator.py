@@ -2,7 +2,7 @@
 
 from decimal import ROUND_DOWN, ROUND_HALF_UP, Decimal
 
-from .models import ChargeType, Receipt
+from .models import ChargeType, Receipt, WeightType
 
 
 def calculate_subtotal(receipt: Receipt) -> Decimal:
@@ -30,12 +30,18 @@ def calculate_people_total(receipt: Receipt) -> Decimal:
 def split_cost(receipt: Receipt) -> None:
     for item in receipt.items.values():
         num_people = len(item.shared_by)
+        weight_type = item.shared_by[0][2]
 
-        for name, weight in item.shared_by:
-            if not weight:
-                share = item.price / num_people
-            else:
+        if weight_type == WeightType.SHARES:
+            total_shares = sum(weight for _,weight,_ in item.shared_by)
+
+        for name, weight, weight_type in item.shared_by:
+            if weight_type == WeightType.SHARES:
+                share = item.price * (weight / total_shares)
+            elif weight_type == WeightType.PERCENTAGE:
                 share = item.price * weight
+            else:
+                share = item.price / num_people
 
             receipt.people[name].total += share
 

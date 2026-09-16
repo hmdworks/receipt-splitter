@@ -10,6 +10,11 @@ class ChargeType(Enum):
     FIXED = "fixed"
 
 
+class WeightType(Enum):
+    SHARES = "shares"
+    PERCENTAGE = "percentage"
+
+
 @dataclass
 class Person:
     name: str
@@ -20,7 +25,7 @@ class Person:
 class ReceiptItem:
     name: str
     price: Decimal
-    shared_by: list[tuple[str, Decimal | None]] = field(default_factory=list)
+    shared_by: list[tuple[str, Decimal | None, WeightType | None]] = field(default_factory=list)
 
 
 @dataclass
