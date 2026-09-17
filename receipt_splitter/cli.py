@@ -8,8 +8,9 @@ from prompt_toolkit.key_binding import KeyBindings
 
 from . import validation
 from .calculator import apply_extra_charges, apply_rounding, split_cost
-from .formatter import show_amount_owed, show_receipt
+from .formatter import format_amount_owed, format_receipt, show_amount_owed, show_receipt
 from .models import Charge, ChargeType, Receipt, WeightType, find_key_ci
+from .export import confirm_save_with_timeout, next_receipt_path, receipt_to_png
 
 
 kb = KeyBindings()
@@ -194,7 +195,17 @@ def fast_split(receipt: Receipt) -> None:
     show_amount_owed(receipt)
     print()
 
-    return
+    if confirm_save_with_timeout():
+        if receipt_to_png(
+            format_receipt(receipt) + "\n" + format_amount_owed(receipt),
+            next_receipt_path(),
+            ):
+            clear_line()
+            print("✓ Saved!\n")
+        else:
+            print(f"[✗] Error: could not save file.\n")
+    else:
+        clear_line()
 
 
 # ======================================================================================
@@ -766,6 +777,27 @@ def add_extra_charges(receipt: Receipt) -> None:
 
 
 # --------------------------------------------------------------------------------------
+# Saving
+# --------------------------------------------------------------------------------------
+
+def wants_save() -> bool:
+    return get_validated_input(
+        "\nWould you like to save the receipt? (y/n): ",
+        validation.validate_yes_no,
+    )
+
+
+def save_receipt(receipt) -> None:
+    if wants_save():
+        if receipt_to_png(
+            format_receipt(receipt) + "\n" + format_amount_owed(receipt),
+            next_receipt_path(),
+            ):
+            print("✓ Saved!\n")
+        else:
+            print(f"[✗] Error: could not save file.\n")
+
+# --------------------------------------------------------------------------------------
 # MAIN
 # --------------------------------------------------------------------------------------
 def main():
@@ -791,7 +823,10 @@ def main():
         clear_screen()
         show_receipt(receipt)
         show_amount_owed(receipt)
-        print("\nThank you for using Receipt Splitter!\nCome back next time!\n")
+
+        save_receipt(receipt)
+
+        print("Thank you for using Receipt Splitter!\nCome back next time!\n")
 
     except KeyboardInterrupt:
         clear_screen()
