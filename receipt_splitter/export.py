@@ -34,7 +34,7 @@ def next_receipt_path(
 def receipt_to_png(
     receipt_text: str,
     output_path: str = "receipt.png",
-    font_path: str = "fonts/ttf/DejaVuSansMono.ttf",
+    font_path: str = "fonts/DejaVuSansMono.ttf",
     font_size: int = 20,
     padding: int = 40,
     line_spacing: int = 8,
