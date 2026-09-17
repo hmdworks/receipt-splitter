@@ -1,5 +1,6 @@
 """Receipt formatter for the receipt splitter."""
 
+import textwrap
 from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
 
@@ -48,12 +49,14 @@ def format_receipt(
     lines.append(_divider(format, "="))
     lines.append("RECEIPT".center(format.line_width))
     lines.append(_divider(format, "="))
+    lines.append("")
 
     if receipt.people:
-        lines.append("\nPEOPLE: " + ", ".join(receipt.people))
+        people_str = ", ".join(receipt.people)
+        lines.extend(textwrap.wrap(people_str, width=format.line_width))
+        lines.append("")
 
     if receipt.items:
-        lines.append("\nITEMS")
         lines.append(_divider(format))
 
         for item in receipt.items.values():
@@ -73,7 +76,8 @@ def format_receipt(
                     else:
                         shared_names.append(person_name)
 
-                lines.append(f"  Shared by: {', '.join(shared_names)}")
+                shared_str = f"  Shared by: {', '.join(shared_names)}"
+                lines.extend(textwrap.wrap(shared_str, width=format.line_width, subsequent_indent="    "))
 
         subtotal = calculate_subtotal(receipt)
 
