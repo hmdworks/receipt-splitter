@@ -22,10 +22,17 @@ class Person:
 
 
 @dataclass
+class Share:
+    name: str
+    weight: Decimal | None
+    weight_type: WeightType | None
+
+
+@dataclass
 class ReceiptItem:
     name: str
     price: Decimal
-    shared_by: list[tuple[str, Decimal | None, WeightType | None]] = field(default_factory=list)
+    shared_by: list[Share] = field(default_factory=list)
 
 
 @dataclass

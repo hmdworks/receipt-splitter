@@ -63,18 +63,14 @@ def format_receipt(
             lines.append(_money_row(format, item.name, item.price))
             if item.shared_by and len(receipt.people) > 1:
                 shared_names = []
-                for entry in item.shared_by:
-                    person_name = entry[0]
-                    person_weight = entry[1]
-                    share_type = entry[2]
-
-                    if share_type == WeightType.PERCENTAGE:
-                        percentage = person_weight * 100
-                        shared_names.append(f"{person_name} ({percentage.normalize():f}%)")
-                    elif share_type == WeightType.SHARES:
-                        shared_names.append(f"{person_name} ({person_weight})")
+                for share in item.shared_by:
+                    if share.weight_type == WeightType.PERCENTAGE:
+                        percentage = share.weight * 100
+                        shared_names.append(f"{share.name} ({percentage.normalize():f}%)")
+                    elif share.weight_type == WeightType.SHARES:
+                        shared_names.append(f"{share.name} ({share.weight})")
                     else:
-                        shared_names.append(person_name)
+                        shared_names.append(share.name)
 
                 shared_str = f"  Shared by: {', '.join(shared_names)}"
                 lines.extend(textwrap.wrap(shared_str, width=format.line_width, subsequent_indent="    "))

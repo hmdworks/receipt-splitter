@@ -29,21 +29,22 @@ def calculate_people_total(receipt: Receipt) -> Decimal:
 
 def split_cost(receipt: Receipt) -> None:
     for item in receipt.items.values():
-        num_people = len(item.shared_by)
-        weight_type = item.shared_by[0][2]
+        shares = item.shared_by
+        num_people = len(shares)
+        weight_type = shares[0].weight_type
 
         if weight_type == WeightType.SHARES:
-            total_shares = sum(weight for _,weight,_ in item.shared_by)
+            total_weights = sum(s.weight for s in shares)
 
-        for name, weight, weight_type in item.shared_by:
+        for s in shares:
             if weight_type == WeightType.SHARES:
-                share = item.price * (weight / total_shares)
+                cut = item.price * (s.weight / total_weights)
             elif weight_type == WeightType.PERCENTAGE:
-                share = item.price * weight
+                cut = item.price * s.weight
             else:
-                share = item.price / num_people
+                cut = item.price / num_people
 
-            receipt.people[name].total += share
+            receipt.people[s.name].total += cut
 
 
 def apply_extra_charges(receipt: Receipt) -> None:
