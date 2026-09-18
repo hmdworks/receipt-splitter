@@ -5,10 +5,12 @@ from decimal import Decimal
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.key_binding import KeyBindings
+from prompt_toolkit import print_formatted_text
+from prompt_toolkit.formatted_text import HTML
 
 from . import validation
 from .calculator import apply_extra_charges, apply_rounding, split_cost
-from .formatter import format_amount_owed, format_receipt, show_amount_owed, show_receipt
+from .formatter import ReceiptFormat, format_amount_owed, format_receipt, show_amount_owed, show_receipt
 from .models import Charge, ChargeType, Receipt, WeightType, find_key_ci
 from .export import confirm_save_with_timeout, next_receipt_path, receipt_to_png
 
@@ -107,10 +109,16 @@ def clear_screen() -> None:
     print("\033[2J\033[3J\033[H", end="")
 
 
-def display_header(title: str) -> None:
-    print(f"\n{title}")
-    print("-" * len(title))
-    print()
+def display_header(title: str, match_receipt: bool = False) -> None:
+    title_width = len(title)
+    receipt_width = ReceiptFormat.line_width
+
+    if not match_receipt:
+        print(f"\n{title}")
+        print("-" * title_width + "\n")
+    else:
+        print("\n" + title.center(receipt_width))
+        print("-" * receipt_width + "\n")
 
 
 def display_start_menu() -> str:
@@ -139,10 +147,18 @@ def refresh_receipt(receipt: Receipt) -> None:
 def fast_split(receipt: Receipt) -> None:
     while True:
         clear_screen()
-        display_header("**//FAST SPLIT//**")
+        display_header("**//FAST SPLIT//**", match_receipt=True)
         show_receipt(receipt)
 
-        print("\n\nAdd item (e.g. pizza, 10, alice, bob / Enter when done): ")
+        print_formatted_text(
+            HTML(
+                "\n\nAdd e.g."
+                "<color fg='#56B6C2'> pizza, 10, alice, bob </color>"
+                "/<color fg='#E5C07B'> Enter </color>when done"
+            )
+        )
+        print()
+
         details = get_validated_input(
             "> ",
             validation.validate_fast_split_line,
@@ -166,11 +182,20 @@ def fast_split(receipt: Receipt) -> None:
         receipt.items[item_name].shared_by = shared_tuples
 
     clear_screen()
-    display_header("**//FAST SPLIT//**")
+    display_header("**//FAST SPLIT//**", match_receipt=True)
     show_receipt(receipt)
 
+    print_formatted_text(
+        HTML(
+            "\n\nExtra charges? "
+            "e.g.<color fg='#56B6C2'> 2, 10%, 5% </color>"
+            "/<color fg='#E5C07B'> Enter </color>if none"
+        )
+    )
+    print()
+
     clean_charges = get_validated_input(
-        "\n\nAny extra charges? (e.g. 2, 10%, 5% / Enter if none) ",
+        "> ",
         validation.validate_fast_split_extra_charges,
     )
 
@@ -190,6 +215,7 @@ def fast_split(receipt: Receipt) -> None:
     apply_rounding(receipt)
 
     clear_screen()
+    display_header("**//FAST SPLIT//**", match_receipt=True)
     show_receipt(receipt)
     show_amount_owed(receipt)
     print()
