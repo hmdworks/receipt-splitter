@@ -8,6 +8,7 @@ from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.layout import Layout
 from prompt_toolkit.layout.containers import Window
 from prompt_toolkit.layout.controls import FormattedTextControl
+from prompt_toolkit.formatted_text import HTML
 
 
 def next_receipt_path(
@@ -107,36 +108,45 @@ def receipt_to_png(
         return False, err_details
 
 
-def confirm_save_with_timeout(timeout: float = 30.0) -> bool:
-    """Creates an animated timer bar and listens in the background
+def confirm_save_with_timeout(timeout: float = 10.0) -> bool:
+    """Creates an animated timer bar after a grace period and listens in the background
     for user input to save receipt or times out instead. Returns True if saved."""
 
     kb = KeyBindings()
-    control = FormattedTextControl("[s] Save? [░░░░░░░░░░]", show_cursor=False)
+
+    bar_length = 32
+    interval = 0.05
+    steps = int(timeout / interval)
+    grace_period = 5
+
+    blocks = " ▏▎▍▌▋▊▉█"
+
+    control = FormattedTextControl(
+            HTML("[s] Save? "),
+            show_cursor=False,
+            )
     text_window = Window(content=control)
 
     @kb.add("s")
     def save(event):
         event.app.exit(result=True)
 
-    bar_length = 32
-    interval = 0.05
-    steps = int(timeout / interval)
-
     async def timer(app):
+        await asyncio.sleep(grace_period)
+
         for i in range(steps):
             await asyncio.sleep(interval)
-
-            blocks = " ▏▎▍▌▋▊▉█"
 
             progress = (i / steps) * bar_length
             filled = int(progress)
             fraction = int((progress - filled) * 8)
 
-            remaining_spaces = max(0, bar_length - filled - 1)
-            bar = "█" * filled + blocks[fraction] + " " * remaining_spaces
+            remaining = max(0, bar_length - filled - 1)
+            bar = "█" * filled + blocks[fraction] + " " * remaining
 
-            control.text = f"[s] Save? [{bar}]"
+            control.text = (
+                HTML(f"[s] Save? <style fg='#BABABA'>[{bar}]</style>")
+            )
             app.invalidate()
 
         app.exit(result=False)

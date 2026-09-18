@@ -194,6 +194,7 @@ def fast_split(receipt: Receipt) -> None:
     show_receipt(receipt)
     show_amount_owed(receipt)
     print()
+    print()
 
     if confirm_save_with_timeout():
         clear_line()
