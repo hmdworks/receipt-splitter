@@ -196,14 +196,15 @@ def fast_split(receipt: Receipt) -> None:
     print()
 
     if confirm_save_with_timeout():
-        if receipt_to_png(
+        clear_line()
+        success, err = receipt_to_png(
             format_receipt(receipt) + "\n" + format_amount_owed(receipt),
             next_receipt_path(),
-            ):
-            clear_line()
+        )
+        if success:
             print("✓ Saved!\n")
         else:
-            print(f"[✗] Error: could not save file.\n")
+            print("✗ Could not save: " + err + "\n")
     else:
         clear_line()
 
@@ -788,14 +789,16 @@ def wants_save() -> bool:
 
 
 def save_receipt(receipt) -> None:
+    output_dir = next_receipt_path()
     if wants_save():
-        if receipt_to_png(
+        success, err = receipt_to_png(
             format_receipt(receipt) + "\n" + format_amount_owed(receipt),
             next_receipt_path(),
-            ):
-            print("✓ Saved!\n")
+        )
+        if success:
+            print(f"✓ Saved to {output_dir}\n")
         else:
-            print(f"[✗] Error: could not save file.\n")
+            print("✗ Could not save: " + err + "\n")
 
 # --------------------------------------------------------------------------------------
 # MAIN

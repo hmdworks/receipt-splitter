@@ -40,9 +40,9 @@ def receipt_to_png(
     line_spacing: int = 8,
     text_color: tuple[int, int, int] = (55, 55, 55),
     background_color: tuple[int, int, int] = (255, 255, 255),
-) -> bool:
+) -> tuple[bool, str]:
     """Takes receipt string and creates .png file saved to output path.
-    Returns True on success and False on system file error."""
+    Returns True on success and False on system file error with error message."""
 
     font = ImageFont.truetype(font_path, font_size)
 
@@ -85,12 +85,26 @@ def receipt_to_png(
     output = Path(output_path)
 
     try:
+        dir_existed = output.parent.exists()
+
         output.parent.mkdir(parents=True, exist_ok=True)
         image.save(output, format="PNG")
-        return True
+
+        return True, ""
     
     except OSError as e:
-        return False
+        if output.exists():
+            output.unlink()
+
+        if not dir_existed and output.parent.exists() and not any(output.parent.iterdir()):
+            try:
+                output.parent.rmdir()
+            except OSError:
+                pass
+
+        err_details = str(e) or type(e).__name__
+
+        return False, err_details
 
 
 def confirm_save_with_timeout(timeout: float = 30.0) -> bool:
