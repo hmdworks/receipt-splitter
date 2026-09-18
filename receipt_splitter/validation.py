@@ -190,6 +190,12 @@ def validate_shares_input(raw: str) -> Decimal:
 
 
 def validate_fast_split_line(raw: str, items: dict) -> list[str | Decimal]:
+    if not raw.strip():
+        if not items:
+            raise ValueError("Please include at least one item.")
+        else:
+            return []
+
     details = [detail.strip() for detail in raw.split(",")]
 
     if len(details) <= 2:

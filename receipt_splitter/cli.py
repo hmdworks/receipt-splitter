@@ -142,15 +142,14 @@ def fast_split(receipt: Receipt) -> None:
         display_header("**//FAST SPLIT//**")
         show_receipt(receipt)
 
-        print("\n\nAdd item (e.g. pizza, 10, alice, bob or '0' when done): ")
+        print("\n\nAdd item (e.g. pizza, 10, alice, bob / Enter when done): ")
         details = get_validated_input(
             "> ",
             validation.validate_fast_split_line,
             receipt.items,
-            allow_back=True
         )
 
-        if details == "0":
+        if details == []:
             break
 
         item_name, item_price, *shared_names = details
@@ -171,7 +170,7 @@ def fast_split(receipt: Receipt) -> None:
     show_receipt(receipt)
 
     clean_charges = get_validated_input(
-        "\n\nAny extra charges? (e.g. 2, 10%, 5%) ",
+        "\n\nAny extra charges? (e.g. 2, 10%, 5% / Enter if none) ",
         validation.validate_fast_split_extra_charges,
     )
 
