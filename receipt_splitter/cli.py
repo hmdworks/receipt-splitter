@@ -156,13 +156,13 @@ def fast_split(receipt: Receipt) -> None:
         item_name, item_price, *shared_names = details
 
         for name in shared_names:
-            if name not in receipt.people:
-                receipt.add_person(name=name)
+            if not find_key_ci(receipt.people, name):
+                receipt.add_person(name)
 
         receipt.add_item(item_name, item_price)
 
         shared_tuples = [
-            (name, None, None) for name in shared_names
+            (find_key_ci(receipt.people, name), None, None) for name in shared_names
         ]
         receipt.items[item_name].shared_by = shared_tuples
 
