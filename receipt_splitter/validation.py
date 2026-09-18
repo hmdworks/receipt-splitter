@@ -156,30 +156,6 @@ def validate_num_option(raw: str, num_options: int) -> int:
     return num
 
 
-def validate_weight_input(raw: str) -> Decimal:
-    try:
-        weight = Decimal(raw.strip()) / 100
-    except InvalidOperation:
-        raise ValueError("Please enter a valid percentage.")
-
-    if weight <= 0:
-        raise ValueError("Please enter a percentage weight greater than zero for each person.")
-    
-    if weight >= 1:
-        raise ValueError("Percentage weight must not be greater than or equal to 100.")
-
-    return weight
-
-
-def validate_item_weights_add_to_one(weights: list[Decimal]) -> bool:
-    total = sum(weights)
-
-    if total != 1:
-        raise ValueError(f"Percentage weights add up to {total * 100}, but must add up to 100.")
-
-    return True
-
-
 def validate_shares_input(raw: str) -> Decimal:
     raw = raw.strip()
 

@@ -10,11 +10,6 @@ class ChargeType(Enum):
     FIXED = "fixed"
 
 
-class WeightType(Enum):
-    SHARES = "shares"
-    PERCENTAGE = "percentage"
-
-
 @dataclass
 class Person:
     name: str
@@ -25,7 +20,6 @@ class Person:
 class Share:
     name: str
     weight: Decimal | None
-    weight_type: WeightType | None
 
 
 @dataclass

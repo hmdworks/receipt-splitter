@@ -11,7 +11,7 @@ from prompt_toolkit.formatted_text import HTML
 from . import validation
 from .calculator import apply_extra_charges, apply_rounding, split_cost
 from .formatter import ReceiptFormat, format_amount_owed, format_receipt, show_amount_owed, show_receipt
-from .models import Charge, ChargeType, Receipt, Share, WeightType, find_key_ci
+from .models import Charge, ChargeType, Receipt, Share, find_key_ci
 from .export import confirm_save_with_timeout, next_receipt_path, receipt_to_png
 
 
@@ -177,7 +177,7 @@ def fast_split(receipt: Receipt) -> None:
         receipt.add_item(item_name, item_price)
 
         shared_details = [
-            Share(find_key_ci(receipt.people, name), None, None) 
+            Share(find_key_ci(receipt.people, name), None) 
             for name in shared_names
         ]
         receipt.items[item_name].shared_by = shared_details
@@ -587,7 +587,7 @@ def edit_shared_by(receipt: Receipt) -> None:
     )
 
     shared_item.shared_by = [
-        Share(find_key_ci(receipt.people, name), None, None)
+        Share(find_key_ci(receipt.people, name), None)
         for name in shared_names
     ]
 
@@ -615,55 +615,15 @@ def edit_item_weights(receipt: Receipt) -> None:
         print(f"\n'{shared_item.name}' is only shared by 1 person. Custom weights aren't needed.")
         return
 
+    for i in range(len(shared_item.shared_by)):
+        person_name = shared_item.shared_by[i].name
+        s = get_validated_input(
+            f"Enter shares for {person_name}: ",
+            validation.validate_shares_input,
+        )
+        shared_item.shared_by[i] = Share(person_name, s)
 
-    split_choice = get_validated_input(
-        "Would you like to split by 1. percentages or 2. shares? ",
-        validation.validate_num_option,
-        2,
-    )
-
-    if split_choice == 1:
-        error = False
-        
-        while True:
-            refresh_receipt(receipt)
-
-            if error:
-                print(error_message)
-                print("Please re-enter percentage weights for each person.\n")
-
-            collected_weights = []
-
-            for i in range(len(shared_item.shared_by)):
-                person_name = shared_item.shared_by[i].name
-                w = get_validated_input(
-                    f"Enter percentage weight for {person_name} (must all add to 100): ",
-                    validation.validate_weight_input,
-                )
-                collected_weights.append(w)
-                shared_item.shared_by[i] = Share(person_name, w, WeightType.PERCENTAGE)
-
-                refresh_receipt(receipt)
-
-            try:
-                if validation.validate_item_weights_add_to_one(collected_weights):
-                    break
-            except ValueError as e:
-                error = True
-                error_message = e
-
-    if split_choice == 2:
         refresh_receipt(receipt)
-
-        for i in range(len(shared_item.shared_by)):
-            person_name = shared_item.shared_by[i].name
-            s = get_validated_input(
-                f"Enter shares for {person_name}: ",
-                validation.validate_shares_input,
-            )
-            shared_item.shared_by[i] = Share(person_name, s, WeightType.SHARES)
-
-            refresh_receipt(receipt)
 
 
 def assign_items(receipt: Receipt) -> None:
@@ -672,7 +632,7 @@ def assign_items(receipt: Receipt) -> None:
     if len(receipt.people) == 1:
         person = next(iter(receipt.people))
         for item in receipt.items.values():  
-            item.shared_by = [Share(person, None, None)]
+            item.shared_by = [Share(person, None)]
         return
 
     for item in receipt.items.values():
@@ -683,7 +643,7 @@ def assign_items(receipt: Receipt) -> None:
         )
 
         item.shared_by = [
-            Share(find_key_ci(receipt.people, name), None, None)
+            Share(find_key_ci(receipt.people, name), None)
             for name in shared_names
         ]
 

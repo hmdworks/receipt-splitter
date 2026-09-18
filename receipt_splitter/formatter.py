@@ -9,7 +9,7 @@ from .calculator import (
     calculate_receipt_total,
     calculate_subtotal,
 )
-from .models import ChargeType, Receipt, WeightType
+from .models import ChargeType, Receipt
 
 
 @dataclass
@@ -64,10 +64,7 @@ def format_receipt(
             if item.shared_by and len(receipt.people) > 1:
                 shared_names = []
                 for share in item.shared_by:
-                    if share.weight_type == WeightType.PERCENTAGE:
-                        percentage = share.weight * 100
-                        shared_names.append(f"{share.name} ({percentage.normalize():f}%)")
-                    elif share.weight_type == WeightType.SHARES:
+                    if share.weight:
                         shared_names.append(f"{share.name} ({share.weight})")
                     else:
                         shared_names.append(share.name)
