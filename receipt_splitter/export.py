@@ -131,6 +131,10 @@ def confirm_save_with_timeout(timeout: float = 10.0) -> bool:
     def save(event):
         event.app.exit(result=True)
 
+    @kb.add("escape")
+    def cancel(event):
+        event.app.exit(result=False)
+
     async def timer(app):
         await asyncio.sleep(grace_period)
 
@@ -139,10 +143,16 @@ def confirm_save_with_timeout(timeout: float = 10.0) -> bool:
 
             progress = (i / steps) * bar_length
             filled = int(progress)
-            fraction = int((progress - filled) * 8)
 
-            remaining = max(0, bar_length - filled - 1)
-            bar = "█" * filled + blocks[fraction] + " " * remaining
+            if filled < bar_length:
+                fraction = min(8, int((progress - filled) * 8))
+                frac_char = blocks[fraction]
+                remaining = bar_length - filled - 1
+            else:
+                frac_char = ""
+                remaining = 0
+
+            bar = "█" * filled + frac_char + " " * remaining
 
             control.text = (
                 HTML(f"[s] Save? <style fg='#BABABA'>[{bar}]</style>")
@@ -159,7 +169,10 @@ def confirm_save_with_timeout(timeout: float = 10.0) -> bool:
     )
 
     async def run():
-        asyncio.create_task(timer(app))
-        return await app.run_async()
+        timer_task = asyncio.create_task(timer(app))
+        try:
+            return await app.run_async()
+        finally:
+            timer_task.cancel()
 
     return asyncio.run(run())
