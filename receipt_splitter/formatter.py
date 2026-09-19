@@ -97,7 +97,8 @@ def format_receipt(
                 lines.append(
                     _money_row(
                         format,
-                        f"Extra charge ({percentage}%)",
+                        f"Charge ({percentage}%)"
+                        if not charge.label else f"{charge.label} ({percentage}%)",
                         charge_amount,
                     )
                 )
@@ -106,7 +107,8 @@ def format_receipt(
                 lines.append(
                     _money_row(
                         format,
-                        "Extra charge (fixed)",
+                        "Charge (fixed)"
+                        if not charge.label else f"{charge.label}",
                         charge.value,
                     )
                 )

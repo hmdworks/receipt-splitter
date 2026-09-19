@@ -117,31 +117,55 @@ def validate_yes_no(raw: str) -> bool:
     return answer == "y"
 
 
-def validate_percentage_charge(raw: str) -> Decimal:
+def validate_percentage_charge(raw: str) -> tuple[Decimal, str | None]:
+    if " " in raw.strip():
+        val, label = raw.strip().split(" ", 1)
+        val = val.strip()
+        label = label.strip()
+
+        if not any(char.isalpha() for char in label):
+            raise ValueError("Please enter a charge label with at least one letter.")
+
+    else:
+        val = raw.strip()
+        label = None
+
     try:
-        percentage_charge = Decimal(raw.strip()) / 100
+        pct = Decimal(val) / 100
     except InvalidOperation:
         raise ValueError("Please enter a valid number.")
 
-    if percentage_charge < 0:
+    if pct < 0:
         raise ValueError("Percentage charge cannot be negative.")
 
-    if percentage_charge > 1:
+    if pct > 1:
         raise ValueError("Percentage charge cannot exceed 100%.")
 
-    return percentage_charge
+    return (pct, label)
 
 
-def validate_fixed_charge(raw: str) -> Decimal:
+def validate_fixed_charge(raw: str) -> tuple[Decimal, str | None]:
+    if " " in raw.strip():
+        val, label = raw.strip().split(" ", 1)
+        val = val.strip()
+        label = label.strip()
+
+        if not any(char.isalpha() for char in label):
+            raise ValueError("Please enter a charge label with at least one letter.")
+
+    else:
+        val = raw.strip()
+        label = None
+
     try:
-        fixed_charge = Decimal(raw.strip())
+        fixed = Decimal(val)
     except InvalidOperation:
         raise ValueError("Please enter a valid number.")
 
-    if fixed_charge < 0:
+    if fixed < 0:
         raise ValueError("Fixed charge cannot be negative.")
 
-    return fixed_charge
+    return (fixed, label)
 
 
 def validate_num_option(raw: str, num_options: int) -> int:
@@ -201,26 +225,43 @@ def validate_fast_split_line(raw: str, items: dict) -> list[str | Decimal]:
     return details
 
 
-def validate_fast_split_extra_charges(raw: str) -> list[str]:
+def validate_fast_split_extra_charges(raw: str) -> list[tuple[str, str | None]]:
     raw = raw.strip()
     if not raw:
         return []
 
-    charges = [c.strip() for c in raw.split(",")]
+    tokens = [c.strip() for c in raw.split(",")]
 
-    if any(not c for c in charges):
+    if any(not t for t in tokens):
         raise ValueError("Please enter valid charges separated by commas.")
 
-    for charge in charges:
-        ends_in_percent = charge.endswith("%")
+    validated_charges = []
 
-        if "%" in charge[:-1]:
+    for token in tokens:
+        if " " in token:
+            val_str, label = token.split(" ", 1)
+            val_str = val_str.strip()
+            label = label.strip()
+
+            if not any(char.isalpha() for char in label):
+                raise ValueError("Please enter charge labels with at least one letter.")
+            
+        else:
+            val_str = token
+            label = None
+
+        if not val_str:
+            raise ValueError("Please enter valid charges separated by commas.")
+
+        ends_in_percent = val_str.endswith("%")
+
+        if "%" in val_str[:-1]:
             raise ValueError("Please enter valid percentages with '%' at the end.")
 
-        charge_num = charge.removesuffix("%") if ends_in_percent else charge
+        val_num = val_str.removesuffix("%") if ends_in_percent else val_str
 
         try:
-            value = Decimal(charge_num)
+            value = Decimal(val_num)
         except InvalidOperation:
             raise ValueError("Please enter valid numbers for charges.")
 
@@ -233,4 +274,6 @@ def validate_fast_split_extra_charges(raw: str) -> list[str]:
         if ends_in_percent and value > 100:
             raise ValueError("Percentage charge must not exceed 100%.")
 
-    return charges
+        validated_charges.append((val_str, label))
+
+    return validated_charges

@@ -33,6 +33,7 @@ class ReceiptItem:
 class Charge:
     type: ChargeType
     value: Decimal
+    label: str | None
 
 
 def find_key_ci(d: dict[str, object], name: str) -> str | None:

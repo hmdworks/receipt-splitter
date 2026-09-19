@@ -154,10 +154,9 @@ def fast_split(receipt: Receipt) -> None:
             HTML(
                 "\n\nAdd e.g."
                 "<color fg='#56B6C2'> pizza, 10, alice, bob </color>"
-                "/<color fg='#E5C07B'> Enter </color>when done"
+                "/<color fg='#E5C07B'> Enter </color>when done\n"
             )
         )
-        print()
 
         details = get_validated_input(
             "> ",
@@ -189,27 +188,33 @@ def fast_split(receipt: Receipt) -> None:
     print_formatted_text(
         HTML(
             "\n\nExtra charges? "
-            "e.g.<color fg='#56B6C2'> 2, 10%, 5% </color>"
-            "/<color fg='#E5C07B'> Enter </color>if none"
+            "e.g.<color fg='#56B6C2'> 2, 10% tax, 5% </color>"
+            "/<color fg='#E5C07B'> Enter </color>if none\n"
         )
     )
-    print()
 
     clean_charges = get_validated_input(
         "> ",
         validation.validate_fast_split_extra_charges,
     )
 
-    for c in clean_charges:
-        if c.endswith("%"):
+    for charge, label in clean_charges:
+        if charge.endswith("%"):
             receipt.extra_charges.append(
                 Charge(
                     ChargeType.PERCENTAGE,
-                    Decimal(c.removesuffix("%")) / 100
+                    Decimal(charge.removesuffix("%")) / 100,
+                    label,
                 )
             )
         else:
-            receipt.extra_charges.append(Charge(ChargeType.FIXED, Decimal(c)))
+            receipt.extra_charges.append(
+                Charge(
+                    ChargeType.FIXED,
+                    Decimal(charge),
+                    label,
+                    )
+                )
 
     split_cost(receipt)
     apply_extra_charges(receipt)
@@ -726,17 +731,17 @@ def add_other_charges(receipt: Receipt) -> None:
         refresh_receipt(receipt)
 
         if other_charge_type == 1:
-            prompt = "Please enter the extra charge percentage: "
+            prompt = "Please enter the percentage charge (e.g. 10 or 10 tax): "
             validator = validation.validate_percentage_charge
             charge_kind = ChargeType.PERCENTAGE
         elif other_charge_type == 2:
-            prompt = "Please enter the extra charge amount: "
+            prompt = "Please enter the extra charge amount (e.g. 5 or 5 tip): "
             validator = validation.validate_fixed_charge
             charge_kind = ChargeType.FIXED
 
-        other_charge_value = get_validated_input(prompt, validator)
+        other_charge_value, other_charge_label = get_validated_input(prompt, validator)
 
-        receipt.extra_charges.append(Charge(charge_kind, other_charge_value))
+        receipt.extra_charges.append(Charge(charge_kind, other_charge_value, other_charge_label))
 
         refresh_receipt(receipt)
 
