@@ -368,16 +368,8 @@ def get_people(receipt: Receipt) -> None:
             if not receipt.people:
                 empty = True
             else:
-                clear_screen()
-                display_people(receipt)
-                print()
+                return
 
-                confirmed = get_validated_input(
-                    "You won't be able to edit people after this. Continue? (y/n): ",
-                    validation.validate_yes_no,
-                )
-                if confirmed:
-                    return
         else:
             input_error = True
 
@@ -434,35 +426,13 @@ def edit_item(receipt: Receipt) -> None:
     if item == -1:
         return -1
 
-    if get_validated_input(
-        f"Change item name? (current: {item.name}) (y/n): ",
-        validation.validate_yes_no,
-    ):
-        new_name = get_validated_input(
-            "Enter new name: ",
-            validation.validate_item_name,
-            [n for n in receipt.items if n.lower() != item.name.lower()],
-            need_existing=False,
-        )
-    else:
-        new_name = item.name
-
-    if get_validated_input(
-        f"Change price? (current: {item.price:.2f}) (y/n): ",
-        validation.validate_yes_no,
-    ):
-        new_price = get_validated_input(
-            "Enter new price: ",
-            validation.validate_price,
-        )
-    else:
-        new_price = item.price
-
-    receipt.edit_item(
-        item.name,
-        new_name,
-        new_price,
+    new_name, new_price = get_validated_input(
+        f"Enter new details for {item.name}: ",
+        validation.validate_item,
+        [n for n in receipt.items if n.lower() != item.name.lower()]
     )
+
+    receipt.edit_item(item.name, new_name, new_price)
 
 
 def delete_item(receipt: Receipt) -> None:
@@ -482,19 +452,11 @@ def delete_item(receipt: Receipt) -> None:
 
 
 def get_items(receipt: Receipt) -> None:
-    while True:
-        add_item(receipt)
+    add_item(receipt)
 
-        clear_screen()
-        display_items(receipt)
-        print()
-
-        another = get_validated_input(
-            "Add another item? (y/n): ", validation.validate_yes_no
-        )
-
-        if not another:
-            break
+    clear_screen()
+    display_items(receipt)
+    print()
 
     input_error = False
     empty = False
@@ -537,16 +499,7 @@ def get_items(receipt: Receipt) -> None:
             if not receipt.items:
                 empty = True
             else:
-                clear_screen()
-                display_items(receipt)
-                print()
-
-                confirmed = get_validated_input(
-                    "You won't be able to edit items after this. Continue? (y/n): ",
-                    validation.validate_yes_no,
-                )
-                if confirmed:
-                    return
+                return
 
         else:
             input_error = True
@@ -571,10 +524,7 @@ def edit_shared_by(receipt: Receipt) -> None:
     if name == "0":
         return
 
-    for item in receipt.items.values():
-        if item.name.lower() == name.lower():
-            shared_item = item
-            break
+    shared_item = receipt.items[find_key_ci(receipt.items, name)]
 
     refresh_receipt(receipt)
 
@@ -590,11 +540,11 @@ def edit_shared_by(receipt: Receipt) -> None:
     ]
 
 
-def edit_item_weights(receipt: Receipt) -> None:
+def edit_item_shares(receipt: Receipt) -> bool:
     refresh_receipt(receipt)
 
     name = get_validated_input(
-        "Enter item name to adjust weights (or 0 to go back): ",
+        "Enter item name to adjust shares (or 0 to go back): ",
         validation.validate_item_name,
         list(receipt.items),
         allow_back=True,
@@ -604,14 +554,10 @@ def edit_item_weights(receipt: Receipt) -> None:
     if name == "0":
         return
 
-    for item in receipt.items.values():
-        if item.name.lower() == name.lower():
-            shared_item = item
-            break
+    shared_item = receipt.items[find_key_ci(receipt.items, name)]
 
     if len(shared_item.shared_by) == 1:
-        print(f"\n'{shared_item.name}' is only shared by 1 person. Custom weights aren't needed.")
-        return
+        return False
 
     for i in range(len(shared_item.shared_by)):
         person_name = shared_item.shared_by[i].name
@@ -622,6 +568,8 @@ def edit_item_weights(receipt: Receipt) -> None:
         shared_item.shared_by[i] = Share(person_name, s)
 
         refresh_receipt(receipt)
+
+    return True
 
 
 def assign_items(receipt: Receipt) -> None:
@@ -648,39 +596,32 @@ def assign_items(receipt: Receipt) -> None:
         refresh_receipt(receipt)
 
     input_error = False
-
-    if get_validated_input(
-        "Were any items shared unequally? (y/n): ",
-        validation.validate_yes_no,
-    ):
-        edit_item_weights(receipt)
+    shares_error = False
 
     while True:
         refresh_receipt(receipt)
 
-        print("[e] Edit who shared  [w] Edit weights  [c] Continue")
+        print("[e] Edit who shared  [s] Add custom shares  [c] Continue")
 
         if input_error:
             print("\nPlease enter e, w or c.\n")
             input_error = False
+
+        if shares_error:
+            print("\nCustom shares aren't needed for items only shared by one person.\n")
+            shares_error = False
 
         choice = get_input("> ").lower()
 
         if choice == "e":
             edit_shared_by(receipt)
 
-        elif choice == "w":
-            edit_item_weights(receipt)
+        elif choice == "s":
+            if not edit_item_shares(receipt):
+                shares_error = True
 
         elif choice == "c":
-            refresh_receipt(receipt)
-
-            confirmed = get_validated_input(
-                "You won't be able to edit shared details after this. Continue? (y/n): ",
-                validation.validate_yes_no,
-            )
-            if confirmed:
-                return
+            return
 
         else:
             input_error = True
