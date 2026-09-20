@@ -714,10 +714,12 @@ def get_charge_type() -> int:
 
 
 def add_service_charge(receipt: Receipt) -> None:
-    receipt.service_rate = get_validated_input(
+    service_rate, _ = get_validated_input(
         "Please enter the service charge percentage: ",
         validation.validate_percentage_charge,
     )
+
+    receipt.service_rate = service_rate
 
 
 def add_other_charges(receipt: Receipt) -> None:
