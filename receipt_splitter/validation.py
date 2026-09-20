@@ -11,19 +11,27 @@ from decimal import Decimal, InvalidOperation
 from .models import find_key_ci
 
 
-def validate_num_people(raw: str) -> int:
-    try:
-        num = int(raw.strip())
-    except ValueError:
-        raise ValueError("Please enter a whole number.")
+def validate_person_names(raw: str) -> list[str]:
+    raw = raw.strip()
+    if not raw:
+        raise ValueError("Please enter at least one person.")
 
-    if num <= 0:
-        raise ValueError("There must be at least one person.")
+    names = [name.strip() for name in raw.split(",")]
 
-    return num
+    if len(names) != len({n.lower() for n in names}):
+        raise ValueError("Please don't enter the same person more than once.")
+
+    for name in names:
+        if not name:
+            raise ValueError("Please enter valid names separated by commas.")
+        
+        if not any(char.isalpha() for char in name):
+            raise ValueError("Names must contain at least one letter.")
+
+    return names
 
 
-def validate_person_name(raw: str, existing_names) -> str:
+def validate_new_person_name(raw: str, existing_names) -> str:
     name = raw.strip()
 
     if not name:

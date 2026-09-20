@@ -271,7 +271,7 @@ def edit_person(receipt: Receipt) -> None:
 
     new_name = get_validated_input(
         f"Enter new name for {person.name} (or 0 to go back): ",
-        validation.validate_person_name,
+        validation.validate_new_person_name,
         [n for n in receipt.people if n.lower() != person.name.lower()],
         allow_back=True,
     )
@@ -305,7 +305,7 @@ def add_person(receipt: Receipt) -> None:
 
     name = get_validated_input(
         "Enter name for new person (or 0 to go back): ",
-        validation.validate_person_name,
+        validation.validate_new_person_name,
         receipt.people,
         allow_back=True,
     )
@@ -320,19 +320,12 @@ def get_people(receipt: Receipt) -> None:
     clear_screen()
     display_people(receipt)
 
-    num_people = get_validated_input(
-        "How many people? ",
-        validation.validate_num_people,
+    names = get_validated_input(
+        f"Add people (e.g. Alice, Bob): ",
+        validation.validate_person_names,
     )
 
-    clear_screen()
-    display_people(receipt)
-
-    for i in range(num_people):
-        name = get_validated_input(
-            f"Person {i + 1}: ", validation.validate_person_name, receipt.people
-        )
-
+    for name in names:
         receipt.add_person(name)
 
     input_error = False
