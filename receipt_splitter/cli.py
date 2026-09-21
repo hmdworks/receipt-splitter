@@ -115,14 +115,14 @@ def display_header(title: str, match_receipt: bool = False) -> None:
 
     if not match_receipt:
         print(f"\n{title}")
-        print("-" * title_width + "\n")
+        print("─" * title_width + "\n")
     else:
         print("\n" + title.center(receipt_width))
-        print("-" * receipt_width + "\n")
+        print("─" * receipt_width + "\n")
 
 
 def display_start_menu() -> str:
-    display_header("~~* Receipt Splitter *~~")
+    display_header("~~* RECEIPT SPLITTER *~~")
     print("Split your bill, fairly.\n")
     print("Press Enter to start.")
     print("Enter 'f' for Fast Split mode!")
@@ -135,6 +135,7 @@ def display_start_menu() -> str:
 
 def refresh_receipt(receipt: Receipt) -> None:
     clear_screen()
+    display_header("~~* RECEIPT SPLITTER *~~", match_receipt=True)
     show_receipt(receipt)
     print()
     print()
@@ -147,12 +148,12 @@ def refresh_receipt(receipt: Receipt) -> None:
 def fast_split(receipt: Receipt) -> None:
     while True:
         clear_screen()
-        display_header("**//FAST SPLIT//**", match_receipt=True)
+        display_header("~~* RECEIPT SPLITTER · FAST SPLIT *~~", match_receipt=True)
         show_receipt(receipt)
 
         print_formatted_text(
             HTML(
-                "\n\nAdd e.g."
+                "\n\n↓ Add e.g."
                 "<color fg='#56B6C2'> pizza, 10, alice, bob </color>"
                 "/<color fg='#E5C07B'> Enter </color>when done\n"
             )
@@ -182,12 +183,12 @@ def fast_split(receipt: Receipt) -> None:
         receipt.items[item_name].shared_by = shared_details
 
     clear_screen()
-    display_header("**//FAST SPLIT//**", match_receipt=True)
+    display_header("~~* RECEIPT SPLITTER · FAST SPLIT *~~", match_receipt=True)
     show_receipt(receipt)
 
     print_formatted_text(
         HTML(
-            "\n\nExtra charges? "
+            "\n\n↓ Extra charges? "
             "e.g.<color fg='#56B6C2'> 2, 10% tax, 5% </color>"
             "/<color fg='#E5C07B'> Enter </color>if none\n"
         )
@@ -221,7 +222,7 @@ def fast_split(receipt: Receipt) -> None:
     apply_rounding(receipt)
 
     clear_screen()
-    display_header("**//FAST SPLIT//**", match_receipt=True)
+    display_header("~~* RECEIPT SPLITTER · FAST SPLIT *~~", match_receipt=True)
     show_receipt(receipt)
     show_amount_owed(receipt)
     print()
@@ -250,7 +251,8 @@ def fast_split(receipt: Receipt) -> None:
 
 
 def display_people(receipt: Receipt) -> None:
-    display_header("People")
+    display_header("~~* RECEIPT SPLITTER *~~", match_receipt=True)
+    display_header("PEOPLE")
 
     for i, person in enumerate(receipt.people.values(), 1):
         print(f"{i}. {person.name}")
@@ -320,8 +322,10 @@ def get_people(receipt: Receipt) -> None:
     clear_screen()
     display_people(receipt)
 
+    print("↓ Add people (e.g. Alice, Bob)\n")
+
     names = get_validated_input(
-        f"Add people (e.g. Alice, Bob): ",
+        "> ",
         validation.validate_person_names,
     )
 
@@ -351,7 +355,7 @@ def get_people(receipt: Receipt) -> None:
             )
             no_options = False
 
-        choice = get_input("> ").lower()
+        choice = get_input("> ").strip().lower()
 
         if choice == "a":
             add_person(receipt)
@@ -380,7 +384,8 @@ def get_people(receipt: Receipt) -> None:
 
 
 def display_items(receipt: Receipt) -> None:
-    display_header("Items")
+    display_header("~~* RECEIPT SPLITTER *~~", match_receipt=True)
+    display_header("ITEMS")
 
     for i, item in enumerate(receipt.items.values(), 1):
         print(f"{i}. {item.name} - £{item.price:.2f}")
@@ -393,13 +398,15 @@ def add_item(receipt: Receipt, allow_item_back: bool = False) -> None:
     if receipt.items:
         print()
 
-    prompt = "Add item (name, price)"
+    prompt = "↓ Add item (name, price)"
 
     if allow_item_back:
         prompt += " (or 0 to go back)"
 
+    print(prompt + "\n")
+
     value = get_validated_input(
-        f"{prompt}: ",
+        "> ",
         validation.validate_item,
         receipt.items,
         allow_back=allow_item_back,
@@ -482,7 +489,7 @@ def get_items(receipt: Receipt) -> None:
             )
             no_options = False
 
-        choice = get_input("> ").lower()
+        choice = get_input("> ").strip().lower()
 
         if choice == "a":
             add_item(receipt, allow_item_back=True)
@@ -528,11 +535,14 @@ def edit_shared_by(receipt: Receipt) -> None:
 
     refresh_receipt(receipt)
 
-    shared_names = get_validated_input(
-        f'Who shared {shared_item.name}? (e.g. Alice, Bob or "all"): ',
-        validation.validate_shared_names,
-        receipt.people,
-    )
+    print(f'↓ Who shared {shared_item.name}? (e.g. Alice, Bob or "all")')
+
+    for item in receipt.items.values():
+        shared_names = get_validated_input(
+            "> ",
+            validation.validate_shared_names,
+            receipt.people,
+        )
 
     shared_item.shared_by = [
         Share(find_key_ci(receipt.people, name), None)
@@ -582,8 +592,10 @@ def assign_items(receipt: Receipt) -> None:
         return
 
     for item in receipt.items.values():
+        print(f'↓ Who shared {item.name}? (e.g. Alice, Bob or "all")\n')
+
         shared_names = get_validated_input(
-            f'Who shared {item.name}? (e.g. Alice, Bob or "all"): ',
+            "> ",
             validation.validate_shared_names,
             receipt.people,
         )
@@ -611,7 +623,7 @@ def assign_items(receipt: Receipt) -> None:
             print("\nCustom shares aren't needed for items only shared by one person.\n")
             shares_error = False
 
-        choice = get_input("> ").lower()
+        choice = get_input("> ").strip().lower()
 
         if choice == "e":
             edit_shared_by(receipt)
@@ -730,6 +742,7 @@ def main():
         apply_rounding(receipt)
 
         clear_screen()
+        display_header("~~* RECEIPT SPLITTER *~~", match_receipt=True)
         show_receipt(receipt)
         show_amount_owed(receipt)
         print()
