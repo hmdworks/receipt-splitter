@@ -108,9 +108,9 @@ def receipt_to_png(
         return False, err_details
 
 
-def confirm_save_with_timeout(timeout: float = 10.0) -> bool:
-    """Creates an animated timer bar after a grace period and listens in the background
-    for user input to save receipt or times out instead. Returns True if saved."""
+def prompt_save_with_timeout(timeout: float = 10.0) -> bool:
+    """Prompts user to save with an animated timer bar after a grace period.
+    Returns True if user chooses to save or False on timeout."""
 
     kb = KeyBindings()
 
@@ -174,5 +174,78 @@ def confirm_save_with_timeout(timeout: float = 10.0) -> bool:
             return await app.run_async()
         finally:
             timer_task.cancel()
+
+    return asyncio.run(run())
+
+
+def prompt_save_or_continue(countdown: int = 10) -> bool:
+    """Prompts user to save or continue, with a countdown after a grace period.
+    Returns True if user chooses to save, otherwise False."""
+
+
+    control = FormattedTextControl(
+                HTML("[s] Save  [Enter] Continue"),
+                    show_cursor=False,
+                )
+    text_window = Window(content=control)
+
+    kb = KeyBindings()
+
+    @kb.add("s")
+    def _(event):
+        event.app.exit(result=True)
+
+    @kb.add("enter")
+    def _(event):
+        event.app.exit(result=False)
+
+    app = Application(
+            layout=Layout(text_window),
+            key_bindings=kb,
+            full_screen=False,
+            cursor=None,
+        )
+
+    grace_period = 5
+
+    async def fade_in_countdown(i: int):
+        colors = [
+            "#000000",
+            "#1F1F1F",
+            "#262626",
+            "#303030",
+            "#333333",
+        ]
+
+        for color in colors:
+            control.text = HTML(
+                f"[s] Save  [Enter] Continue    "
+                f"<style fg='{color}'>Auto-continue in {i}...</style>"
+            )
+            app.invalidate()
+            await asyncio.sleep(1 / len(colors))
+
+    async def run():
+        async def timer():
+            await asyncio.sleep(grace_period)
+
+            for i in range(int(countdown), 0, -1):
+                if i == countdown:
+                    await fade_in_countdown(i)
+                else:
+                    control.text = HTML(
+                        f"[s] Save  [Enter] Continue    "
+                        f"<style fg='#333333'>Auto-continue in {i}...</style>"
+                    )
+                    app.invalidate()
+                await asyncio.sleep(1)
+
+            app.exit(result=False)
+
+        task = asyncio.create_task(timer())
+        try:
+            return await app.run_async()
+        finally:
+            task.cancel()
 
     return asyncio.run(run())

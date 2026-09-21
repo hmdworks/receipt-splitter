@@ -12,7 +12,7 @@ from . import validation
 from .calculator import apply_extra_charges, apply_rounding, split_cost
 from .formatter import ReceiptFormat, format_amount_owed, format_receipt, show_amount_owed, show_receipt
 from .models import Charge, ChargeType, Receipt, Share, find_key_ci
-from .export import confirm_save_with_timeout, next_receipt_path, receipt_to_png
+from .export import next_receipt_path, prompt_save_with_timeout, prompt_save_or_continue, receipt_to_png
 
 
 kb = KeyBindings()
@@ -227,7 +227,7 @@ def fast_split(receipt: Receipt) -> None:
     print()
     print()
 
-    if confirm_save_with_timeout():
+    if prompt_save_with_timeout():
         clear_line()
         success, err = receipt_to_png(
             format_receipt(receipt) + "\n" + format_amount_owed(receipt),
@@ -690,24 +690,21 @@ def add_extra_charges(receipt: Receipt) -> None:
 # Saving
 # --------------------------------------------------------------------------------------
 
-def wants_save() -> bool:
-    return get_validated_input(
-        "\nWould you like to save the receipt? (y/n): ",
-        validation.validate_yes_no,
-    )
-
 
 def save_receipt(receipt) -> None:
     output_dir = next_receipt_path()
-    if wants_save():
+    if prompt_save_or_continue():
         success, err = receipt_to_png(
             format_receipt(receipt) + "\n" + format_amount_owed(receipt),
             next_receipt_path(),
         )
+        clear_line()
         if success:
             print(f"✓ Saved to {output_dir}\n")
         else:
             print("✗ Could not save: " + err + "\n")
+    else:
+        clear_line()
 
 # --------------------------------------------------------------------------------------
 # MAIN
@@ -735,6 +732,8 @@ def main():
         clear_screen()
         show_receipt(receipt)
         show_amount_owed(receipt)
+        print()
+        print()
 
         save_receipt(receipt)
 
