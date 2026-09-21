@@ -632,79 +632,58 @@ def assign_items(receipt: Receipt) -> None:
 # --------------------------------------------------------------------------------------
 
 
-def wants_extra_charges() -> bool:
-    return get_validated_input(
-        "Would you like to add an extra charge (y/n)? ",
-        validation.validate_yes_no,
-    )
-
-
-def get_charge_type() -> int:
-    return get_validated_input(
-        "Choose: 1. standard service charge, or 2. other (percentage/fixed): ",
-        validation.validate_num_option,
-        2,
-    )
-
-
-def add_service_charge(receipt: Receipt) -> None:
-    service_rate, _ = get_validated_input(
-        "Please enter the service charge percentage: ",
-        validation.validate_percentage_charge,
-    )
-
-    receipt.service_rate = service_rate
-
-
-def add_other_charges(receipt: Receipt) -> None:
+def add_extra_charges(receipt: Receipt) -> None:
     while True:
-        other_charge_type = get_validated_input(
-            "Choose: 1. percentage charge (unequal split), or 2. fixed charge (equal split): ",
+        refresh_receipt(receipt)
+
+        print("Would you like to add an extra charge?\n\n"
+            "1. Service charge\n2. Custom percentage charge\n"
+            "3. Custom fixed charge\n4. No extra charge\n")
+
+        charge_type = get_validated_input(
+            "> ",
             validation.validate_num_option,
-            2,
+            4,
         )
 
         refresh_receipt(receipt)
 
-        if other_charge_type == 1:
-            prompt = "Please enter the percentage charge (e.g. 10 or 10 tax): "
-            validator = validation.validate_percentage_charge
-            charge_kind = ChargeType.PERCENTAGE
-        elif other_charge_type == 2:
-            prompt = "Please enter the extra charge amount (e.g. 5 or 5 tip): "
-            validator = validation.validate_fixed_charge
-            charge_kind = ChargeType.FIXED
+        if charge_type == 1:
+            if receipt.service_rate != 0:
+                override_choice = get_validated_input(
+                    "Would you like to 1. override or 2. keep the existing service charge?",
+                    validation.validate_num_option,
+                    2,
+                )
 
-        other_charge_value, other_charge_label = get_validated_input(prompt, validator)
+                if override_choice == 2:
+                    continue
 
-        receipt.extra_charges.append(Charge(charge_kind, other_charge_value, other_charge_label))
+            refresh_receipt(receipt)
 
-        refresh_receipt(receipt)
+            service_rate, _ = get_validated_input(
+                "Please enter the service charge percentage: ",
+                validation.validate_percentage_charge,
+            )
 
-        if not wants_extra_charges():
-            break
+            receipt.service_rate = service_rate
 
+        elif charge_type == 4:
+            return
 
-def add_extra_charges(receipt: Receipt) -> None:
-    refresh_receipt(receipt)
+        else:
+            if charge_type == 2:
+                prompt = "Please enter the percentage charge (e.g. 10 or 10 tax): "
+                validator = validation.validate_percentage_charge
+                charge_kind = ChargeType.PERCENTAGE
+            else:
+                prompt = "Please enter the extra charge amount (e.g. 5 or 5 tip): "
+                validator = validation.validate_fixed_charge
+                charge_kind = ChargeType.FIXED
 
-    if not wants_extra_charges():
-        return
+            charge_value, charge_label = get_validated_input(prompt, validator)
 
-    charge_type = get_charge_type()
-
-    refresh_receipt(receipt)
-
-    if charge_type == 1:
-        add_service_charge(receipt)
-
-        refresh_receipt(receipt)
-
-        if wants_extra_charges():
-            add_other_charges(receipt)
-
-    elif charge_type == 2:
-        add_other_charges(receipt)
+            receipt.extra_charges.append(Charge(charge_kind, charge_value, charge_label))
 
 
 # --------------------------------------------------------------------------------------
