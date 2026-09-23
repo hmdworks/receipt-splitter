@@ -7,12 +7,28 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit import print_formatted_text
 from prompt_toolkit.formatted_text import HTML
+from prompt_toolkit.application import Application
+from prompt_toolkit.layout import Layout
+from prompt_toolkit.styles import Style
 
 from . import validation
+from .ui.animations import BoxAnimator, _WIDTH
+from .ui.styles import start_menu_style
 from .calculator import apply_extra_charges, apply_rounding, split_cost
 from .formatter import ReceiptFormat, format_amount_owed, format_receipt, show_amount_owed, show_receipt
 from .models import Charge, ChargeType, Receipt, Share, find_key_ci
 from .export import next_receipt_path, prompt_save_with_timeout, prompt_save_or_continue, receipt_to_png
+
+
+MAIN_MENU_TEXT = [
+    f"<title>{'~~* RECEIPT SPLITTER *~~'.center(_WIDTH)}</title>",
+    " " * _WIDTH,
+    f"<sub>{'Split your bill, fairly.'.center(_WIDTH)}</sub>",
+    " " * _WIDTH,
+    "[ Enter ] Start".center(_WIDTH).replace("[ Enter ]", "<enter>[ Enter ]</enter>"),
+    "[ f ] Fast Split".center(_WIDTH).replace("[ f ]", "<fast>[ f ]</fast>"),
+    "[ Esc ] Quit".center(_WIDTH).replace("[ Esc ]", "<esc>[ Esc ]</esc>"),
+]
 
 
 kb = KeyBindings()
@@ -122,15 +138,31 @@ def display_header(title: str, match_receipt: bool = False) -> None:
 
 
 def display_start_menu() -> str:
-    display_header("~~* RECEIPT SPLITTER *~~")
-    print("Split your bill, fairly.\n")
-    print("Press Enter to start.")
-    print("Enter 'f' for Fast Split mode!")
-    print("Press Esc anytime to quit.\n")
+    animator = BoxAnimator(content=MAIN_MENU_TEXT)
 
-    menu_choice = get_input("")
+    kb = KeyBindings()
 
-    return menu_choice
+    @kb.add("enter")
+    def _(event):
+        event.app.exit(result="normal")
+
+    @kb.add("f")
+    def _(event):
+        event.app.exit(result="fast")
+
+    @kb.add("escape")
+    def _(event):
+        event.app.exit(result="quit")
+
+    app = Application(
+        layout=Layout(animator.create_padded_container()),
+        key_bindings=kb,
+        style=start_menu_style,
+        full_screen=False,
+        refresh_interval=0.3,
+    )
+
+    return app.run()
 
 
 def refresh_receipt(receipt: Receipt) -> None:
@@ -727,9 +759,13 @@ def main():
     try:
         receipt = Receipt()
 
-        menu_choice = display_start_menu()
-        if menu_choice.strip().lower() == "f":
+        start_choice = display_start_menu()
+
+        if start_choice == "fast":
             fast_split(receipt)
+            return
+        elif start_choice == "quit":
+            clear_screen()
             return
 
         get_people(receipt)
