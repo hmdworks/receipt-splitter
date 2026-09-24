@@ -43,7 +43,8 @@ def receipt_to_png(
     background_color: tuple[int, int, int] = (255, 255, 255),
 ) -> tuple[bool, str]:
     """Takes receipt string and creates .png file saved to output path.
-    Returns True on success and False on system file error with error message."""
+    Returns True on success and False on system file error with error message.
+    Cleans up files if receipt could not be saved."""
 
     font = ImageFont.truetype(font_path, font_size)
 

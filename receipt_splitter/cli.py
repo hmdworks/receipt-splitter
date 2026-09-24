@@ -736,8 +736,8 @@ def add_extra_charges(receipt: Receipt) -> None:
 
 
 def save_receipt(receipt) -> None:
-    output_dir = next_receipt_path()
     if prompt_save_or_continue():
+        output_dir = next_receipt_path()
         success, err = receipt_to_png(
             format_receipt(receipt) + "\n" + format_amount_owed(receipt),
             next_receipt_path(),
