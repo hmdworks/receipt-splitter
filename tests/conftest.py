@@ -2,7 +2,7 @@ from decimal import Decimal
 
 import pytest
 
-from receipt_splitter.models import Charge, ChargeType, Receipt, Share
+from receipt_splitter.models import Charge, ChargeType, Person, Receipt, ReceiptItem, Share
 
 
 @pytest.fixture
@@ -15,11 +15,15 @@ def sample_receipt():
         ],
     )
 
-    receipt.add_person("Alice")
-    receipt.add_person("Bob")
+    receipt.people = {
+        "Alice": Person("Alice"),
+        "Bob": Person("Bob"),
+    }
 
-    receipt.add_item("Pizza", Decimal("20.00"))
-    receipt.add_item("Drinks", Decimal("10.00"))
+    receipt.items = {
+        "Pizza": ReceiptItem("Pizza", Decimal("20.00")),
+        "Drinks": ReceiptItem("Drinks", Decimal("10.00"))
+    }
 
     receipt.items["Pizza"].shared_by = [
         Share("Alice", None),
