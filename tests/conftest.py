@@ -2,7 +2,7 @@ from decimal import Decimal
 
 import pytest
 
-from receipt_splitter.models import Charge, ChargeType, Receipt
+from receipt_splitter.models import Charge, ChargeType, Receipt, Share
 
 
 @pytest.fixture
@@ -10,8 +10,8 @@ def sample_receipt():
     receipt = Receipt(
         service_rate=Decimal("0.10"),
         extra_charges=[
-            Charge(ChargeType.PERCENTAGE, Decimal("0.05")),
-            Charge(ChargeType.FIXED, Decimal("2.00")),
+            Charge(ChargeType.PERCENTAGE, Decimal("0.05"), None),
+            Charge(ChargeType.FIXED, Decimal("2.00"), None),
         ],
     )
 
@@ -22,11 +22,11 @@ def sample_receipt():
     receipt.add_item("Drinks", Decimal("10.00"))
 
     receipt.items["Pizza"].shared_by = [
-        ("Alice", None, None),
-        ("Bob", None, None),
+        Share("Alice", None),
+        Share("Bob", None),
     ]
     receipt.items["Drinks"].shared_by = [
-        ("Alice", None, None)
+        Share("Alice", None)
     ]
 
     return receipt
