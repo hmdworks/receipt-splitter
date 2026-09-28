@@ -27,8 +27,8 @@ def test_split_cost(sample_receipt):
 
 def test_split_cost_with_shares(sample_receipt):
     sample_receipt.items["Pizza"].shared_by = [
-        Share("Alice", Decimal("1")),
-        Share("Bob", Decimal("3")),
+        Share("Alice", Decimal(1)),
+        Share("Bob", Decimal(3)),
     ]
 
     split_cost(sample_receipt)

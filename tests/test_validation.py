@@ -4,14 +4,16 @@ import pytest
 
 from receipt_splitter import validation
 
-
 # ------------------------------------------------------------------
 # validate_person_names
 # ------------------------------------------------------------------
 
+
 def test_validate_person_names_valid():
     assert validation.validate_person_names("Alice, Bob, Charlie") == [
-        "Alice", "Bob", "Charlie"
+        "Alice",
+        "Bob",
+        "Charlie",
     ]
 
 
@@ -48,6 +50,7 @@ def test_validate_person_names_no_letters_raises():
 # validate_new_person_name
 # ------------------------------------------------------------------
 
+
 def test_validate_new_person_name_valid():
     assert validation.validate_new_person_name("Charlie", ["Alice", "Bob"]) == "Charlie"
 
@@ -71,6 +74,7 @@ def test_validate_new_person_name_duplicate_case_insensitive_raises():
 # validate_item_line
 # ------------------------------------------------------------------
 
+
 def test_validate_item_line_valid():
     assert validation.validate_item_line("Pizza, 12.50") == ("Pizza", "12.50")
 
@@ -90,6 +94,7 @@ def test_validate_item_line_splits_on_first_comma_only():
 # ------------------------------------------------------------------
 # validate_item_name
 # ------------------------------------------------------------------
+
 
 def test_validate_item_name_new_valid():
     assert validation.validate_item_name("Pizza", ["Drinks"], False) == "Pizza"
@@ -118,6 +123,7 @@ def test_validate_item_name_existing_not_found_raises():
 # validate_item
 # ------------------------------------------------------------------
 
+
 def test_validate_item_valid():
     name, price = validation.validate_item("Pizza, 12.50", [])
     assert name == "Pizza"
@@ -138,12 +144,13 @@ def test_validate_item_duplicate_name_raises():
 # validate_price
 # ------------------------------------------------------------------
 
+
 def test_validate_price_valid():
     assert validation.validate_price("12.50") == Decimal("12.50")
 
 
 def test_validate_price_integer_ok():
-    assert validation.validate_price("12") == Decimal("12")
+    assert validation.validate_price("12") == Decimal(12)
 
 
 def test_validate_price_not_a_number_raises():
@@ -169,6 +176,7 @@ def test_validate_price_too_many_decimals_raises():
 # ------------------------------------------------------------------
 # validate_shared_names
 # ------------------------------------------------------------------
+
 
 @pytest.fixture
 def people():
@@ -206,6 +214,7 @@ def test_validate_shared_names_duplicate_raises(people):
 # validate_yes_no
 # ------------------------------------------------------------------
 
+
 def test_validate_yes_no_yes():
     assert validation.validate_yes_no("y") is True
 
@@ -222,6 +231,7 @@ def test_validate_yes_no_invalid_raises():
 # ------------------------------------------------------------------
 # validate_percentage_charge
 # ------------------------------------------------------------------
+
 
 def test_validate_percentage_charge_no_label():
     value, label = validation.validate_percentage_charge("10")
@@ -257,22 +267,23 @@ def test_validate_percentage_charge_over_100_raises():
 
 def test_validate_percentage_charge_exactly_100_ok():
     value, _ = validation.validate_percentage_charge("100")
-    assert value == Decimal("1")
+    assert value == Decimal(1)
 
 
 # ------------------------------------------------------------------
 # validate_fixed_charge
 # ------------------------------------------------------------------
 
+
 def test_validate_fixed_charge_no_label():
     value, label = validation.validate_fixed_charge("5")
-    assert value == Decimal("5")
+    assert value == Decimal(5)
     assert label is None
 
 
 def test_validate_fixed_charge_with_label():
     value, label = validation.validate_fixed_charge("5 tip")
-    assert value == Decimal("5")
+    assert value == Decimal(5)
     assert label == "tip"
 
 
@@ -283,7 +294,7 @@ def test_validate_fixed_charge_negative_raises():
 
 def test_validate_fixed_charge_zero_ok():
     value, _ = validation.validate_fixed_charge("0")
-    assert value == Decimal("0")
+    assert value == Decimal(0)
 
 
 def test_validate_fixed_charge_not_a_number_raises():
@@ -299,6 +310,7 @@ def test_validate_fixed_charge_label_no_letters_raises():
 # ------------------------------------------------------------------
 # validate_num_option
 # ------------------------------------------------------------------
+
 
 def test_validate_num_option_valid():
     assert validation.validate_num_option("3", 5) == 3
@@ -323,8 +335,9 @@ def test_validate_num_option_not_a_number_raises():
 # validate_shares_input
 # ------------------------------------------------------------------
 
+
 def test_validate_shares_input_valid():
-    assert validation.validate_shares_input("3") == Decimal("3")
+    assert validation.validate_shares_input("3") == Decimal(3)
 
 
 def test_validate_shares_input_zero_raises():
@@ -351,10 +364,11 @@ def test_validate_shares_input_not_a_number_raises():
 # validate_fast_split_line
 # ------------------------------------------------------------------
 
+
 def test_validate_fast_split_line_valid():
     result = validation.validate_fast_split_line("Pizza, 10, Alice, Bob", {})
     assert result[0] == "Pizza"
-    assert result[1] == Decimal("10")
+    assert result[1] == Decimal(10)
     assert result[2:] == ["Alice", "Bob"]
 
 
@@ -405,6 +419,7 @@ def test_validate_fast_split_line_bad_price_raises():
 # ------------------------------------------------------------------
 # validate_fast_split_extra_charges
 # ------------------------------------------------------------------
+
 
 def test_validate_fast_split_extra_charges_empty():
     assert validation.validate_fast_split_extra_charges("") == []

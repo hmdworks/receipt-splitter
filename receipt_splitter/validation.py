@@ -24,7 +24,7 @@ def validate_person_names(raw: str) -> list[str]:
     for name in names:
         if not name:
             raise ValueError("Please enter valid names separated by commas.")
-        
+
         if not any(char.isalpha() for char in name):
             raise ValueError("Names must contain at least one letter.")
 
@@ -98,10 +98,10 @@ def validate_price(raw: str) -> Decimal:
 
 def validate_shared_names(raw: str, people) -> list[str]:
     raw = raw.strip()
-    
+
     if raw.lower() == "all":
         return list(people.keys())
-    
+
     names = [name.strip() for name in raw.split(",")]
 
     if any(not name for name in names):
@@ -253,7 +253,7 @@ def validate_fast_split_extra_charges(raw: str) -> list[tuple[str, str | None]]:
 
             if not any(char.isalpha() for char in label):
                 raise ValueError("Please enter charge labels with at least one letter.")
-            
+
         else:
             val_str = token
             label = None

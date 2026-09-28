@@ -22,9 +22,14 @@ from receipt_splitter.models import Person, Receipt, ReceiptItem
         (
             Decimal("10.00"),
             7,
-            [Decimal("1.43"), Decimal("1.43"), Decimal("1.43"),
-            Decimal("1.43"), Decimal("1.43"), Decimal("1.43"),
-            Decimal("1.42"),
+            [
+                Decimal("1.43"),
+                Decimal("1.43"),
+                Decimal("1.43"),
+                Decimal("1.43"),
+                Decimal("1.43"),
+                Decimal("1.43"),
+                Decimal("1.42"),
             ],
         ),
     ],

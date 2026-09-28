@@ -30,10 +30,10 @@ def calculate_people_total(receipt: Receipt) -> Decimal:
 def split_cost(receipt: Receipt) -> None:
     for item in receipt.items.values():
         shares = item.shared_by
-        total_weights = sum((s.weight or Decimal("1")) for s in shares)
+        total_weights = sum((s.weight or Decimal(1)) for s in shares)
 
         for s in shares:
-            weight = s.weight or Decimal("1")
+            weight = s.weight or Decimal(1)
             cut = item.price * (weight / total_weights)
             receipt.people[s.name].total += cut
 

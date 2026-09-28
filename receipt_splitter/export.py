@@ -4,11 +4,11 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 from prompt_toolkit.application import Application
+from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.layout import Layout
 from prompt_toolkit.layout.containers import Window
 from prompt_toolkit.layout.controls import FormattedTextControl
-from prompt_toolkit.formatted_text import HTML
 
 
 def next_receipt_path(
@@ -57,9 +57,7 @@ def receipt_to_png(
     line_height = font.getbbox("Ag")[3] + line_spacing
 
     text_width = max(
-        dummy.textbbox((0, 0), line, font=font)[2]
-        if line else 0
-        for line in lines
+        dummy.textbbox((0, 0), line, font=font)[2] if line else 0 for line in lines
     )
 
     image_width = text_width + (padding * 2)
@@ -93,12 +91,16 @@ def receipt_to_png(
         image.save(output, format="PNG")
 
         return True, ""
-    
+
     except OSError as e:
         if output.exists():
             output.unlink()
 
-        if not dir_existed and output.parent.exists() and not any(output.parent.iterdir()):
+        if (
+            not dir_existed
+            and output.parent.exists()
+            and not any(output.parent.iterdir())
+        ):
             try:
                 output.parent.rmdir()
             except OSError:
@@ -123,9 +125,9 @@ def prompt_save_with_timeout(timeout: float = 10.0) -> bool:
     blocks = " ▏▎▍▌▋▊▉█"
 
     control = FormattedTextControl(
-            HTML("[s] Save? "),
-            show_cursor=False,
-            )
+        HTML("[s] Save? "),
+        show_cursor=False,
+    )
     text_window = Window(content=control)
 
     @kb.add("s")
@@ -155,9 +157,7 @@ def prompt_save_with_timeout(timeout: float = 10.0) -> bool:
 
             bar = "█" * filled + frac_char + " " * remaining
 
-            control.text = (
-                HTML(f"[s] Save? <style fg='#BABABA'>[{bar}]</style>")
-            )
+            control.text = HTML(f"[s] Save? <style fg='#BABABA'>[{bar}]</style>")
             app.invalidate()
 
         app.exit(result=False)
@@ -183,11 +183,10 @@ def prompt_save_or_continue(countdown: int = 10) -> bool:
     """Prompts user to save or continue, with a countdown after a grace period.
     Returns True if user chooses to save, otherwise False."""
 
-
     control = FormattedTextControl(
-                HTML("[s] Save  [Enter] Continue"),
-                    show_cursor=False,
-                )
+        HTML("[s] Save  [Enter] Continue"),
+        show_cursor=False,
+    )
     text_window = Window(content=control)
 
     kb = KeyBindings()
@@ -201,11 +200,11 @@ def prompt_save_or_continue(countdown: int = 10) -> bool:
         event.app.exit(result=False)
 
     app = Application(
-            layout=Layout(text_window),
-            key_bindings=kb,
-            full_screen=False,
-            cursor=None,
-        )
+        layout=Layout(text_window),
+        key_bindings=kb,
+        full_screen=False,
+        cursor=None,
+    )
 
     grace_period = 5
 

@@ -3,22 +3,30 @@
 import time
 from decimal import Decimal
 
-from prompt_toolkit import PromptSession
-from prompt_toolkit.key_binding import KeyBindings
-from prompt_toolkit import print_formatted_text
-from prompt_toolkit.formatted_text import HTML
+from prompt_toolkit import PromptSession, print_formatted_text
 from prompt_toolkit.application import Application
+from prompt_toolkit.formatted_text import HTML
+from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.layout import Layout
-from prompt_toolkit.styles import Style
 
 from . import validation
-from .ui.animations import BoxAnimator, _WIDTH
-from .ui.styles import start_menu_style
 from .calculator import apply_extra_charges, apply_rounding, split_cost
-from .formatter import ReceiptFormat, format_amount_owed, format_receipt, show_amount_owed, show_receipt
+from .export import (
+    next_receipt_path,
+    prompt_save_or_continue,
+    prompt_save_with_timeout,
+    receipt_to_png,
+)
+from .formatter import (
+    ReceiptFormat,
+    format_amount_owed,
+    format_receipt,
+    show_amount_owed,
+    show_receipt,
+)
 from .models import Charge, ChargeType, Receipt, Share, find_key_ci
-from .export import next_receipt_path, prompt_save_with_timeout, prompt_save_or_continue, receipt_to_png
-
+from .ui.animations import _WIDTH, BoxAnimator
+from .ui.styles import start_menu_style
 
 MAIN_MENU_TEXT = [
     f"<title>{'~~* RECEIPT SPLITTER *~~'.center(_WIDTH)}</title>",
@@ -177,6 +185,7 @@ def refresh_receipt(receipt: Receipt) -> None:
 ### FAST SPLIT ###
 # ======================================================================================
 
+
 def fast_split(receipt: Receipt) -> None:
     while True:
         clear_screen()
@@ -209,8 +218,7 @@ def fast_split(receipt: Receipt) -> None:
         receipt.add_item(item_name, item_price)
 
         shared_details = [
-            Share(find_key_ci(receipt.people, name), None) 
-            for name in shared_names
+            Share(find_key_ci(receipt.people, name), None) for name in shared_names
         ]
         receipt.items[item_name].shared_by = shared_details
 
@@ -246,8 +254,8 @@ def fast_split(receipt: Receipt) -> None:
                     ChargeType.FIXED,
                     Decimal(charge),
                     label,
-                    )
                 )
+            )
 
     split_cost(receipt)
     apply_extra_charges(receipt)
@@ -468,7 +476,7 @@ def edit_item(receipt: Receipt) -> None:
     new_name, new_price = get_validated_input(
         f"Enter new details for {item.name}: ",
         validation.validate_item,
-        [n for n in receipt.items if n.lower() != item.name.lower()]
+        [n for n in receipt.items if n.lower() != item.name.lower()],
     )
 
     receipt.edit_item(item.name, new_name, new_price)
@@ -576,8 +584,7 @@ def edit_shared_by(receipt: Receipt) -> None:
     )
 
     shared_item.shared_by = [
-        Share(find_key_ci(receipt.people, name), None)
-        for name in shared_names
+        Share(find_key_ci(receipt.people, name), None) for name in shared_names
     ]
 
 
@@ -618,7 +625,7 @@ def assign_items(receipt: Receipt) -> None:
 
     if len(receipt.people) == 1:
         person = next(iter(receipt.people))
-        for item in receipt.items.values():  
+        for item in receipt.items.values():
             item.shared_by = [Share(person, None)]
         return
 
@@ -632,8 +639,7 @@ def assign_items(receipt: Receipt) -> None:
         )
 
         item.shared_by = [
-            Share(find_key_ci(receipt.people, name), None)
-            for name in shared_names
+            Share(find_key_ci(receipt.people, name), None) for name in shared_names
         ]
 
         refresh_receipt(receipt)
@@ -679,9 +685,11 @@ def add_extra_charges(receipt: Receipt) -> None:
     while True:
         refresh_receipt(receipt)
 
-        print("Would you like to add an extra charge?\n\n"
+        print(
+            "Would you like to add an extra charge?\n\n"
             "1. Service charge\n2. Custom percentage charge\n"
-            "3. Custom fixed charge\n4. No extra charge\n")
+            "3. Custom fixed charge\n4. No extra charge\n"
+        )
 
         charge_type = get_validated_input(
             "> ",
@@ -726,7 +734,9 @@ def add_extra_charges(receipt: Receipt) -> None:
 
             charge_value, charge_label = get_validated_input(prompt, validator)
 
-            receipt.extra_charges.append(Charge(charge_kind, charge_value, charge_label))
+            receipt.extra_charges.append(
+                Charge(charge_kind, charge_value, charge_label)
+            )
 
 
 # --------------------------------------------------------------------------------------
@@ -748,6 +758,7 @@ def save_receipt(receipt) -> None:
             print("✗ Could not save: " + err + "\n")
     else:
         clear_line()
+
 
 # --------------------------------------------------------------------------------------
 # MAIN

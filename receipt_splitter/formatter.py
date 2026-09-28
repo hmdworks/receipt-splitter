@@ -70,7 +70,11 @@ def format_receipt(
                         shared_names.append(share.name)
 
                 shared_str = f"  Shared by: {', '.join(shared_names)}"
-                lines.extend(textwrap.wrap(shared_str, width=format.line_width, subsequent_indent="    "))
+                lines.extend(
+                    textwrap.wrap(
+                        shared_str, width=format.line_width, subsequent_indent="    "
+                    )
+                )
 
         subtotal = calculate_subtotal(receipt)
 
@@ -98,7 +102,8 @@ def format_receipt(
                     _money_row(
                         format,
                         f"Charge ({percentage}%)"
-                        if not charge.label else f"{charge.label} ({percentage}%)",
+                        if not charge.label
+                        else f"{charge.label} ({percentage}%)",
                         charge_amount,
                     )
                 )
@@ -107,8 +112,7 @@ def format_receipt(
                 lines.append(
                     _money_row(
                         format,
-                        "Charge (fixed)"
-                        if not charge.label else f"{charge.label}",
+                        "Charge (fixed)" if not charge.label else f"{charge.label}",
                         charge.value,
                     )
                 )
