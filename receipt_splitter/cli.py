@@ -567,14 +567,13 @@ def edit_shared_by(receipt: Receipt) -> None:
 
     refresh_receipt(receipt)
 
-    print(f'↓ Who shared {shared_item.name}? (e.g. Alice, Bob or "all")')
+    print(f'↓ Who shared {shared_item.name}? (e.g. Alice, Bob or "all")\n')
 
-    for item in receipt.items.values():
-        shared_names = get_validated_input(
-            "> ",
-            validation.validate_shared_names,
-            receipt.people,
-        )
+    shared_names = get_validated_input(
+        "> ",
+        validation.validate_shared_names,
+        receipt.people,
+    )
 
     shared_item.shared_by = [
         Share(find_key_ci(receipt.people, name), None)
@@ -582,7 +581,7 @@ def edit_shared_by(receipt: Receipt) -> None:
     ]
 
 
-def edit_item_shares(receipt: Receipt) -> bool:
+def edit_item_shares(receipt: Receipt) -> bool | None:
     refresh_receipt(receipt)
 
     name = get_validated_input(
@@ -594,7 +593,7 @@ def edit_item_shares(receipt: Receipt) -> bool:
     )
 
     if name == "0":
-        return
+        return None
 
     shared_item = receipt.items[find_key_ci(receipt.items, name)]
 
@@ -645,14 +644,14 @@ def assign_items(receipt: Receipt) -> None:
     while True:
         refresh_receipt(receipt)
 
-        print("[e] Edit who shared  [s] Add custom shares  [c] Continue")
+        print("[e] Edit who shared  [s] Add custom shares  [c] Continue\n")
 
         if input_error:
-            print("\nPlease enter e, w or c.\n")
+            print("Please enter e, s or c.\n")
             input_error = False
 
         if shares_error:
-            print("\nCustom shares aren't needed for items only shared by one person.\n")
+            print("Custom shares aren't needed for items only shared by one person.\n")
             shares_error = False
 
         choice = get_input("> ").strip().lower()
@@ -661,7 +660,7 @@ def assign_items(receipt: Receipt) -> None:
             edit_shared_by(receipt)
 
         elif choice == "s":
-            if not edit_item_shares(receipt):
+            if edit_item_shares(receipt) is False:
                 shares_error = True
 
         elif choice == "c":
