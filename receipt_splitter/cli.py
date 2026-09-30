@@ -4,10 +4,8 @@ import time
 from decimal import Decimal
 
 from prompt_toolkit import PromptSession, print_formatted_text
-from prompt_toolkit.application import Application
 from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.key_binding import KeyBindings
-from prompt_toolkit.layout import Layout
 
 from .core import validation
 from .core.calculator import apply_extra_charges, apply_rounding, split_cost
@@ -25,18 +23,7 @@ from .formatter import (
     show_receipt,
 )
 from .core.models import Charge, ChargeType, Receipt, Share, find_key_ci
-from .ui.animations import _WIDTH, BoxAnimator
-from .ui.styles import start_menu_style
-
-MAIN_MENU_TEXT = [
-    f"<title>{'~~* RECEIPT SPLITTER *~~'.center(_WIDTH)}</title>",
-    " " * _WIDTH,
-    f"<sub>{'Split your bill, fairly.'.center(_WIDTH)}</sub>",
-    " " * _WIDTH,
-    "[ Enter ] Start".center(_WIDTH).replace("[ Enter ]", "<enter>[ Enter ]</enter>"),
-    "[ f ] Fast Split".center(_WIDTH).replace("[ f ]", "<fast>[ f ]</fast>"),
-    "[ Esc ] Quit".center(_WIDTH).replace("[ Esc ]", "<esc>[ Esc ]</esc>"),
-]
+from .ui.dialogs import run_start_menu_dialog
 
 
 kb = KeyBindings()
@@ -143,34 +130,6 @@ def display_header(title: str, match_receipt: bool = False) -> None:
     else:
         print("\n" + title.center(receipt_width))
         print("─" * receipt_width + "\n")
-
-
-def display_start_menu() -> str:
-    animator = BoxAnimator(content=MAIN_MENU_TEXT)
-
-    kb = KeyBindings()
-
-    @kb.add("enter")
-    def _(event):
-        event.app.exit(result="normal")
-
-    @kb.add("f")
-    def _(event):
-        event.app.exit(result="fast")
-
-    @kb.add("escape")
-    def _(event):
-        event.app.exit(result="quit")
-
-    app = Application(
-        layout=Layout(animator.create_padded_container()),
-        key_bindings=kb,
-        style=start_menu_style,
-        full_screen=False,
-        refresh_interval=0.3,
-    )
-
-    return app.run()
 
 
 def refresh_receipt(receipt: Receipt) -> None:
@@ -769,7 +728,7 @@ def main():
     try:
         receipt = Receipt()
 
-        start_choice = display_start_menu()
+        start_choice = run_start_menu_dialog()
 
         if start_choice == "fast":
             fast_split(receipt)
