@@ -9,8 +9,8 @@ from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.layout import Layout
 
-from . import validation
-from .calculator import apply_extra_charges, apply_rounding, split_cost
+from .core import validation
+from .core.calculator import apply_extra_charges, apply_rounding, split_cost
 from .export import (
     next_receipt_path,
     prompt_save_or_continue,
@@ -24,7 +24,7 @@ from .formatter import (
     show_amount_owed,
     show_receipt,
 )
-from .models import Charge, ChargeType, Receipt, Share, find_key_ci
+from .core.models import Charge, ChargeType, Receipt, Share, find_key_ci
 from .ui.animations import _WIDTH, BoxAnimator
 from .ui.styles import start_menu_style
 

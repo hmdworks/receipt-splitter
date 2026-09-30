@@ -4,12 +4,12 @@ import textwrap
 from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
 
-from .calculator import (
+from .core.calculator import (
     calculate_people_total,
     calculate_receipt_total,
     calculate_subtotal,
 )
-from .models import ChargeType, Receipt
+from .core.models import ChargeType, Receipt
 
 
 @dataclass
