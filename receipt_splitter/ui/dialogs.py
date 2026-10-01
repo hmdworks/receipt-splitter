@@ -66,21 +66,12 @@ def run_start_menu_dialog() -> str:
         show_cursor=False,
     )
 
-    layout = Layout(
-        Box(
-            Window(
-                content=content_control,
-                always_hide_cursor=True,
-            ),
-            padding=1,
-        )
-    )
+    layout = Layout(Window(content=content_control))
 
     app = Application(
         layout=layout,
         key_bindings=kb,
         full_screen=False,
-        cursor=None,
     )
 
     return app.run()
