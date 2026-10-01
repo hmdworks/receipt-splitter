@@ -27,13 +27,14 @@ def format_start_menu_rich() -> Panel:
 
     table.add_row("[menu.enter][ Enter ][menu.enter]", "Start Normal Split")
     table.add_row("[menu.fast][ f ][menu.fast]", "Fast Split")
-    table.add_row("[menu.esc][ Esc ][menu.esc]", "Quit")
 
     menu_group = Group(
         Text("~~* RECEIPT SPLITTER *~~", style="app.header", justify="center"),
-        table,
+        Text(""),
         Text("When splitting with your friends, " 
-            "never be a penny off the total ever again!\n", style="app.subtitle", justify="center"),
+            "never be a penny off the total ever again!", style="app.subtitle", justify="center"),
+        table,
+        Text("Press Esc to quit anytime", style="menu.footer", justify="center")
     )
 
     return Panel(
