@@ -1,6 +1,6 @@
 from rich.theme import Theme
 
-MAX_UI_WIDTH = 52
+MAX_UI_WIDTH = 55
 
 app_theme = Theme(
     {
@@ -16,5 +16,13 @@ app_theme = Theme(
         "prompt": "bold #56B6C2",
         "error": "bold red",
         "success": "bold green",
+        # receipt themes
+        "COLOR_TITLE": "bold #f1c40f",
+        "COLOR_BORDER": "#576574",
+        "COLOR_HEADER": "bold #2ecc71",
+        "COLOR_ITEM": "#f5f6fa",
+        "COLOR_PRICE": "#00b894",
+        "COLOR_TOTAL":"bold #ff7675",
+        "COLOR_MUTED": "#8395a7",
     }
 )

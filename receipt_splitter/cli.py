@@ -23,7 +23,7 @@ from .formatter import (
     show_receipt,
 )
 from .core.models import Charge, ChargeType, Receipt, Share, find_key_ci
-from .ui.dialogs import run_start_menu_dialog
+from .ui.dialogs import run_start_menu_dialog, run_interactive_rich_session, format_receipt_rich
 
 
 kb = KeyBindings()
@@ -147,22 +147,13 @@ def refresh_receipt(receipt: Receipt) -> None:
 
 def fast_split(receipt: Receipt) -> None:
     while True:
-        clear_screen()
-        display_header("~~* RECEIPT SPLITTER · FAST SPLIT *~~", match_receipt=True)
-        show_receipt(receipt)
-
-        print_formatted_text(
-            HTML(
-                "\n\n↓ Add e.g."
-                "<color fg='#56B6C2'> pizza, 10, alice, bob </color>"
-                "/<color fg='#E5C07B'> Enter </color>when done\n"
-            )
-        )
-
-        details = get_validated_input(
-            "> ",
-            validation.validate_fast_split_line,
-            receipt.items,
+        details = run_interactive_rich_session(
+            title="Add details",
+            render_func=format_receipt_rich,
+            receipt_data=receipt,
+            prompt="Add e.g. pizza, 10, alice, bob or Enter when done",
+            validator=validation.validate_fast_split_line,
+            exit_on_submit=True,
         )
 
         if details == []:
@@ -181,21 +172,13 @@ def fast_split(receipt: Receipt) -> None:
         ]
         receipt.items[item_name].shared_by = shared_details
 
-    clear_screen()
-    display_header("~~* RECEIPT SPLITTER · FAST SPLIT *~~", match_receipt=True)
-    show_receipt(receipt)
-
-    print_formatted_text(
-        HTML(
-            "\n\n↓ Extra charges? "
-            "e.g.<color fg='#56B6C2'> 2, 10% tax, 5% </color>"
-            "/<color fg='#E5C07B'> Enter </color>if none\n"
-        )
-    )
-
-    clean_charges = get_validated_input(
-        "> ",
-        validation.validate_fast_split_extra_charges,
+    clean_charges = run_interactive_rich_session(
+        title="Add extra charges",
+        render_func=format_receipt_rich,
+        receipt_data=receipt,
+        prompt="Add e.g.  2, 10% tax, 5% or Enter if none",
+        validator=validation.validate_fast_split_extra_charges,
+        exit_on_submit=True,
     )
 
     for charge, label in clean_charges:
@@ -220,25 +203,99 @@ def fast_split(receipt: Receipt) -> None:
     apply_extra_charges(receipt)
     apply_rounding(receipt)
 
-    clear_screen()
-    display_header("~~* RECEIPT SPLITTER · FAST SPLIT *~~", match_receipt=True)
-    show_receipt(receipt)
-    show_amount_owed(receipt)
-    print()
-    print()
+    # while True:
+    #     clear_screen()
+    #     display_header("~~* RECEIPT SPLITTER · FAST SPLIT *~~", match_receipt=True)
+    #     show_receipt(receipt)
 
-    if prompt_save_with_timeout():
-        clear_line()
-        success, err = receipt_to_png(
-            format_receipt(receipt) + "\n" + format_amount_owed(receipt),
-            next_receipt_path(),
-        )
-        if success:
-            print("✓ Saved!\n")
-        else:
-            print("✗ Could not save: " + err + "\n")
-    else:
-        clear_line()
+    #     print_formatted_text(
+    #         HTML(
+    #             "\n\n↓ Add e.g."
+    #             "<color fg='#56B6C2'> pizza, 10, alice, bob </color>"
+    #             "/<color fg='#E5C07B'> Enter </color>when done\n"
+    #         )
+    #     )
+
+    #     details = get_validated_input(
+    #         "> ",
+    #         validation.validate_fast_split_line,
+    #         receipt.items,
+    #     )
+
+    #     if details == []:
+    #         break
+
+    #     item_name, item_price, *shared_names = details
+
+    #     for name in shared_names:
+    #         if not find_key_ci(receipt.people, name):
+    #             receipt.add_person(name)
+
+    #     receipt.add_item(item_name, item_price)
+
+    #     shared_details = [
+    #         Share(find_key_ci(receipt.people, name), None) for name in shared_names
+    #     ]
+    #     receipt.items[item_name].shared_by = shared_details
+
+    # clear_screen()
+    # display_header("~~* RECEIPT SPLITTER · FAST SPLIT *~~", match_receipt=True)
+    # show_receipt(receipt)
+
+    # print_formatted_text(
+    #     HTML(
+    #         "\n\n↓ Extra charges? "
+    #         "e.g.<color fg='#56B6C2'> 2, 10% tax, 5% </color>"
+    #         "/<color fg='#E5C07B'> Enter </color>if none\n"
+    #     )
+    # )
+
+    # clean_charges = get_validated_input(
+    #     "> ",
+    #     validation.validate_fast_split_extra_charges,
+    # )
+
+    # for charge, label in clean_charges:
+    #     if charge.endswith("%"):
+    #         receipt.extra_charges.append(
+    #             Charge(
+    #                 ChargeType.PERCENTAGE,
+    #                 Decimal(charge.removesuffix("%")) / 100,
+    #                 label,
+    #             )
+    #         )
+    #     else:
+    #         receipt.extra_charges.append(
+    #             Charge(
+    #                 ChargeType.FIXED,
+    #                 Decimal(charge),
+    #                 label,
+    #             )
+    #         )
+
+    # split_cost(receipt)
+    # apply_extra_charges(receipt)
+    # apply_rounding(receipt)
+
+    # clear_screen()
+    # display_header("~~* RECEIPT SPLITTER · FAST SPLIT *~~", match_receipt=True)
+    # show_receipt(receipt)
+    # show_amount_owed(receipt)
+    # print()
+    # print()
+
+    # if prompt_save_with_timeout():
+    #     clear_line()
+    #     success, err = receipt_to_png(
+    #         format_receipt(receipt) + "\n" + format_amount_owed(receipt),
+    #         next_receipt_path(),
+    #     )
+    #     if success:
+    #         print("✓ Saved!\n")
+    #     else:
+    #         print("✗ Could not save: " + err + "\n")
+    # else:
+    #     clear_line()
 
 
 # ======================================================================================
